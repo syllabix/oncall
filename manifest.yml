@@ -6,6 +6,12 @@ features:
   bot_user:
     display_name: On Call
     always_online: true
+  slash_commands:
+    - command: /schedule
+      url: https://example.com/slack/command/schedule
+      description: Create, view or edit an on call schedule
+      usage_hint: create, view, edit
+      should_escape: true
 oauth_config:
   scopes:
     bot:
@@ -19,15 +25,17 @@ oauth_config:
       - users:read
       - usergroups:read
       - channels:read
+      - commands
 settings:
   event_subscriptions:
-    request_url: <base_url>/slack/action
+    request_url: https://example.com/slack/action
     bot_events:
       - app_mention
   interactivity:
     is_enabled: true
-    request_url: <base_url>/slack/action
-    message_menu_options_url: <base_url>/slack/load-options
+    request_url: https://example.com/slack/interaction
+    message_menu_options_url: https://example.com/slack/load-options
   org_deploy_enabled: false
   socket_mode_enabled: false
   token_rotation_enabled: false
+

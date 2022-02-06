@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/syllabix/oncall/api/controller/command"
 	"github.com/syllabix/oncall/api/controller/slack"
 	"go.uber.org/fx"
 )
@@ -9,4 +10,5 @@ import (
 // API controllers
 var Module = fx.Provide(
 	slack.NewController,
+	command.NewController,
 )

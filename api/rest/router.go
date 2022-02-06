@@ -14,7 +14,7 @@ type Router struct {
 
 // NewRouter returns an http.Handler for the On Call
 // rest API
-func NewRouter(registered Controllers) Router {
+func NewRouter(registered Controllers, logger *middleware.Logger) Router {
 
 	router := httprouter.New()
 
@@ -22,7 +22,9 @@ func NewRouter(registered Controllers) Router {
 		r.Register(router)
 	}
 
-	handler := middleware.Recover(router)
+	handler := middleware.Recover(
+		logger.LogRequests(router),
+	)
 
 	return Router{Handler: handler}
 }

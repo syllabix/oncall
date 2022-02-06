@@ -1,12 +1,14 @@
 package slack
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/syllabix/oncall/api/middleware"
 	"github.com/syllabix/oncall/api/rest"
@@ -35,7 +37,7 @@ func NewController(
 
 func (ctrl *Controller) Register(router *httprouter.Router) {
 	router.POST("/slack/action", ctrl.HandleAction)
-	router.POST("/slack/interaction", ctrl.verifier.Verify(ctrl.HandleInteraction))
+	router.POST("/slack/interaction", ctrl.HandleInteraction)
 	router.POST("/slack/load-options", ctrl.verifier.Verify(ctrl.LoadOptions))
 }
 
@@ -66,13 +68,19 @@ func (ctrl *Controller) HandleAction(w http.ResponseWriter, r *http.Request, _ h
 }
 
 func (ctrl *Controller) HandleInteraction(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var payload strings.Builder
-	_, err := io.Copy(&payload, r.Body)
+	err := r.ParseForm()
 	if err != nil {
-		w.WriteHeader(500)
+		http.Error(w,
+			http.StatusText(http.StatusBadRequest),
+			http.StatusBadRequest)
 		return
 	}
-	fmt.Println("handle action", payload.String())
+
+	var callback slack.InteractionCallback
+	err = json.Unmarshal([]byte(r.Form.Get("payload")), &callback)
+
+	fmt.Printf("%+v", callback)
+
 	w.WriteHeader(200)
 	fmt.Fprint(w, "Ok")
 }

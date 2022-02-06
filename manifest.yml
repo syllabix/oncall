@@ -12,6 +12,26 @@ features:
       description: Create, view or edit an on call schedule
       usage_hint: create, view, edit
       should_escape: true
+    - command: /add
+      url: https://example.com/slack/command/add
+      description: Adds a team member to the on call schedule
+      usage_hint: "@user-handle"
+      should_escape: true
+    - command: /swap
+      url: https://example.com/slack/command/swap
+      description: Swap shifts between two team members
+      usage_hint: "@me @teamate"
+      should_escape: true
+    - command: /withdraw
+      url: https://example.com/slack/command/withdraw
+      description: Remove a user from the shift rotation
+      usage_hint: "@user-handle"
+      should_escape: true
+    - command: /override
+      url: https://example.com/slack/command/override
+      description: Override the current shift with a new team member
+      usage_hint: "@user-handle"
+      should_escape: true
 oauth_config:
   scopes:
     bot:
@@ -38,4 +58,3 @@ settings:
   org_deploy_enabled: false
   socket_mode_enabled: false
   token_rotation_enabled: false
-

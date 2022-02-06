@@ -10,7 +10,7 @@ import (
 func NewClient(settings config.SlackSettings) (*slack.Client, error) {
 	client := slack.New(
 		settings.AuthToken,
-		slack.OptionDebug(true),
+		slack.OptionDebug(settings.DebugMode),
 		slack.OptionAppLevelToken(settings.AppToken),
 	)
 

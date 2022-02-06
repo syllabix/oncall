@@ -3,16 +3,19 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
 )
 
 type SlackSettings struct {
-	AuthToken     string
-	AppToken      string
-	WebHook       string
-	SigningSecret string
+	AuthToken         string
+	AppToken          string
+	WebHook           string
+	SigningSecret     string
+	VerificationToken string
+	DebugMode         bool
 }
 
 type ServerSettings struct {
@@ -38,10 +41,12 @@ func Load() (ServerSettings, SlackSettings) {
 			ReadTimeout:  getEnvAsDur("READ_TIMEOUT", time.Minute*2),
 			WriteTimeout: getEnvAsDur("WRITE_TIMEOUT", time.Minute*2),
 		}, SlackSettings{
-			AuthToken:     os.Getenv("SLACK_AUTH_TOKEN"),
-			AppToken:      os.Getenv("SLACK_APP_TOKEN"),
-			WebHook:       os.Getenv("SLACK_WEB_HOOK"),
-			SigningSecret: os.Getenv("SLACK_SIGNING_SECRET"),
+			AuthToken:         os.Getenv("SLACK_AUTH_TOKEN"),
+			AppToken:          os.Getenv("SLACK_APP_TOKEN"),
+			WebHook:           os.Getenv("SLACK_WEB_HOOK"),
+			SigningSecret:     os.Getenv("SLACK_SIGNING_SECRET"),
+			VerificationToken: os.Getenv("SLACK_VERIFICATION_TOKEN"),
+			DebugMode:         asBool("SLACK_ENABLE_DEBUG_MODE", true),
 		}
 }
 
@@ -55,4 +60,18 @@ func getEnvAsDur(key string, def time.Duration) time.Duration {
 		return def
 	}
 	return dur
+}
+
+func asBool(key string, def bool) bool {
+	val := os.Getenv(key)
+	switch strings.ToLower(val) {
+	case "true":
+		return true
+
+	case "false":
+		return false
+
+	default:
+		return def
+	}
 }

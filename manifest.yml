@@ -19,13 +19,15 @@ oauth_config:
       - users:read
       - usergroups:read
       - channels:read
-      - commands
 settings:
   event_subscriptions:
+    request_url: <base_url>/slack/action
     bot_events:
       - app_mention
   interactivity:
     is_enabled: true
+    request_url: <base_url>/slack/action
+    message_menu_options_url: <base_url>/slack/load-options
   org_deploy_enabled: false
-  socket_mode_enabled: true
+  socket_mode_enabled: false
   token_rotation_enabled: false

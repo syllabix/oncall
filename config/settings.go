@@ -9,7 +9,10 @@ import (
 )
 
 type SlackSettings struct {
-	AuthToken string
+	AuthToken     string
+	AppToken      string
+	WebHook       string
+	SigningSecret string
 }
 
 type ServerSettings struct {
@@ -35,7 +38,10 @@ func Load() (ServerSettings, SlackSettings) {
 			ReadTimeout:  getEnvAsDur("READ_TIMEOUT", time.Minute*2),
 			WriteTimeout: getEnvAsDur("WRITE_TIMEOUT", time.Minute*2),
 		}, SlackSettings{
-			AuthToken: os.Getenv("SLACK_AUTH_TOKEN"),
+			AuthToken:     os.Getenv("SLACK_AUTH_TOKEN"),
+			AppToken:      os.Getenv("SLACK_APP_TOKEN"),
+			WebHook:       os.Getenv("SLACK_WEB_HOOK"),
+			SigningSecret: os.Getenv("SLACK_SIGNING_SECRET"),
 		}
 }
 

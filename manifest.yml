@@ -1,0 +1,31 @@
+display_information:
+  name: On Call
+  description: Incident Response Manager
+  background_color: "#2c404d"
+features:
+  bot_user:
+    display_name: On Call
+    always_online: true
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read
+      - channels:history
+      - channels:join
+      - channels:manage
+      - chat:write
+      - chat:write.customize
+      - incoming-webhook
+      - users:read
+      - usergroups:read
+      - channels:read
+      - commands
+settings:
+  event_subscriptions:
+    bot_events:
+      - app_mention
+  interactivity:
+    is_enabled: true
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false

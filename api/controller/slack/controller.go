@@ -1,14 +1,12 @@
 package slack
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/syllabix/oncall/api/middleware"
 	"github.com/syllabix/oncall/api/rest"
@@ -58,7 +56,6 @@ func (ctrl *Controller) HandleAction(w http.ResponseWriter, r *http.Request, _ h
 	case slackevents.CallbackEvent:
 		err = ctrl.handler.Handle(event.EventsAPIEvent)
 		if err != nil {
-			ctrl.log.Error("failed to unmarshal url verification body", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -76,10 +73,12 @@ func (ctrl *Controller) HandleInteraction(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var callback slack.InteractionCallback
-	err = json.Unmarshal([]byte(r.Form.Get("payload")), &callback)
+	fmt.Printf("\n\n%+v\n\n", r.Form)
 
-	fmt.Printf("%+v", callback)
+	// var callback slack.InteractionCallback
+	// err = json.Unmarshal([]byte(r.Form.Get("payload")), &callback)
+
+	// fmt.Printf("%+v", callback)
 
 	w.WriteHeader(200)
 	fmt.Fprint(w, "Ok")

@@ -1,23 +1,19 @@
 package schedule
 
-import (
-	"github.com/slack-go/slack"
-)
-
 type Manager interface {
-	Prepare() slack.Attachment
+	Prepare() CreateForm
 }
 
 func NewManager() Manager {
 	return &manager{
-		attachment: setupScheduleForm(),
+		form: newScheduleForm,
 	}
 }
 
 type manager struct {
-	attachment slack.Attachment
+	form CreateForm
 }
 
-func (m *manager) Prepare() slack.Attachment {
-	return m.attachment
+func (m *manager) Prepare() CreateForm {
+	return m.form
 }

@@ -35,7 +35,6 @@ func NewController(
 
 func (ctrl *Controller) Register(router *httprouter.Router) {
 	router.POST("/slack/action", ctrl.HandleAction)
-	router.POST("/slack/interaction", ctrl.HandleInteraction)
 	router.POST("/slack/load-options", ctrl.verifier.Verify(ctrl.LoadOptions))
 }
 
@@ -61,26 +60,6 @@ func (ctrl *Controller) HandleAction(w http.ResponseWriter, r *http.Request, _ h
 		}
 	}
 
-	fmt.Fprint(w, "Ok")
-}
-
-func (ctrl *Controller) HandleInteraction(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w,
-			http.StatusText(http.StatusBadRequest),
-			http.StatusBadRequest)
-		return
-	}
-
-	fmt.Printf("\n\n%+v\n\n", r.Form)
-
-	// var callback slack.InteractionCallback
-	// err = json.Unmarshal([]byte(r.Form.Get("payload")), &callback)
-
-	// fmt.Printf("%+v", callback)
-
-	w.WriteHeader(200)
 	fmt.Fprint(w, "Ok")
 }
 

@@ -8,27 +8,27 @@ features:
     always_online: true
   slash_commands:
     - command: /schedule
-      url: https://example.com/slack/command/schedule
+      url: {{ .BaseURL }}/slack/command/schedule
       description: Create, view or edit an on call schedule
       usage_hint: create, view, edit
       should_escape: true
     - command: /add
-      url: https://example.com/slack/command/add
+      url: {{ .BaseURL }}/slack/command/add
       description: Adds a team member to the on call schedule
       usage_hint: "@user-handle"
       should_escape: true
     - command: /swap
-      url: https://example.com/slack/command/swap
+      url: {{ .BaseURL }}/slack/command/swap
       description: Swap shifts between two team members
       usage_hint: "@me @teamate"
       should_escape: true
     - command: /withdraw
-      url: https://example.com/slack/command/withdraw
+      url: {{ .BaseURL }}/slack/command/withdraw
       description: Remove a user from the shift rotation
       usage_hint: "@user-handle"
       should_escape: true
     - command: /override
-      url: https://example.com/slack/command/override
+      url: {{ .BaseURL }}/slack/command/override
       description: Override the current shift with a new team member
       usage_hint: "@user-handle"
       should_escape: true
@@ -48,13 +48,13 @@ oauth_config:
       - commands
 settings:
   event_subscriptions:
-    request_url: https://example.com/slack/action
+    request_url: {{ .BaseURL }}/slack/action
     bot_events:
       - app_mention
   interactivity:
     is_enabled: true
-    request_url: https://example.com/slack/interaction
-    message_menu_options_url: https://example.com/slack/load-options
+    request_url: {{ .BaseURL }}/slack/interaction
+    message_menu_options_url: {{ .BaseURL }}/slack/load-options
   org_deploy_enabled: false
   socket_mode_enabled: false
   token_rotation_enabled: false

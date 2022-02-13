@@ -1,19 +1,23 @@
 package schedule
 
+import (
+	"fmt"
+
+	"github.com/syllabix/oncall/service/schedule/oncall"
+)
+
 type Manager interface {
-	Prepare() CreateForm
+	Create(oncall.Schedule) error
 }
 
 func NewManager() Manager {
-	return &manager{
-		form: newScheduleForm,
-	}
+	return &manager{}
 }
 
 type manager struct {
-	form CreateForm
 }
 
-func (m *manager) Prepare() CreateForm {
-	return m.form
+func (m *manager) Create(schedule oncall.Schedule) error {
+	fmt.Printf("%+v", schedule)
+	return nil
 }

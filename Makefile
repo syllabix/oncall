@@ -26,6 +26,10 @@ help:
 run:
 	go1.18beta2 run main.go
 
+## run go mod tidy
+tidy:
+	go1.18beta2 mod tidy
+
 ## Start development environment (generates code, spins up databases, etc)
 dev.start: 
 	export LOCAL_MOUNT= $(shell pwd)
@@ -35,6 +39,10 @@ dev.start:
 ## Stop the development environment
 dev.stop:
 	docker compose down
+
+## Sets up Slack bot manifest generator utility
+manifest:
+	go1.18beta2 run ./.dev/manifest/generator.go
 
 name = ""
 ## Creates a new db migration file for the provided service. (Ex: make migration name=cool-new-tables)

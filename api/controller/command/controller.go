@@ -2,31 +2,30 @@ package command
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/slack-go/slack"
 	"github.com/syllabix/oncall/api/middleware"
 	"github.com/syllabix/oncall/api/rest"
-	"github.com/syllabix/oncall/service/schedule"
+	"github.com/syllabix/oncall/slack/command"
 	"go.uber.org/zap"
 )
 
 type Controller struct {
-	verifier  *middleware.SlackVerifier
-	scheduler schedule.Manager
+	verifier *middleware.SlackVerifier
+	handler  command.Handler
 
 	log *zap.Logger
 }
 
 func NewController(
 	verifier *middleware.SlackVerifier,
-	scheduler schedule.Manager,
+	handler command.Handler,
 	log *zap.Logger,
 ) rest.Controller {
 	return rest.MakeController(
-		&Controller{verifier, scheduler, log},
+		&Controller{verifier, handler, log},
 	)
 }
 
@@ -44,26 +43,41 @@ func (ctrl *Controller) HandleCommand(w http.ResponseWriter, r *http.Request, ps
 
 	cmd, err := slack.SlashCommandParse(r)
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadGateway)
+		http.Error(w,
+			http.StatusText(http.StatusBadRequest),
+			http.StatusBadRequest)
 		return
 	}
 
-	cmd.ValidateToken()
+	res, err := ctrl.handler.Handle(cmd)
+	if err != nil {
+		ctrl.log.Error("command handler failed", zap.Error(err))
+		switch err {
+		case command.ErrInvalidSlackToken:
+			http.Error(w,
+				http.StatusText(http.StatusBadRequest),
+				http.StatusBadRequest)
+
+		case command.ErrUnsupportedCommand:
+			http.Error(w,
+				"Sorry... I don't know how to do that yet",
+				http.StatusBadRequest)
+
+		default:
+			http.Error(w,
+				http.StatusText(http.StatusInternalServerError),
+				http.StatusInternalServerError)
+		}
+
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-
-	switch cmd.Command {
-	case "/schedule":
-		res := ctrl.scheduler.Prepare()
-		output, _ := json.Marshal(&res)
-		fmt.Println(string(output))
-		err = json.NewEncoder(w).Encode(&res)
-		if err != nil {
-			ctrl.log.Error("failed to to had")
-		}
-		return
-
-	default:
-		http.Error(w, "Sorry... I don't know how to do that yet", http.StatusBadGateway)
+	err = json.NewEncoder(w).Encode(&res)
+	if err != nil {
+		ctrl.log.Error("failed to encode and send back response to command",
+			zap.Error(err),
+			zap.String("command", cmd.Command),
+		)
 	}
 }

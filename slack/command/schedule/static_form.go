@@ -1,57 +1,16 @@
 package schedule
 
-type CreateForm struct {
-	Blocks []Block `json:"blocks"`
-}
+import "github.com/syllabix/oncall/slack/forminput"
 
-type Block struct {
-	Type    string          `json:"type"`
-	BlockID string          `json:"block_id"`
-	Element *FormElement    `json:"element,omitempty"`
-	Label   *Label          `json:"label,omitempty"`
-	Actions []ActionElement `json:"elements,omitempty"`
-}
-
-type FormElement struct {
-	Type        string   `json:"type"`
-	ActionID    string   `json:"action_id"`
-	Placeholder Label    `json:"placeholder"`
-	Options     []Option `json:"options,omitempty"`
-}
-
-type Option struct {
-	Text  Label  `json:"text"`
-	Value string `json:"value"`
-}
-
-type Label struct {
-	Type  Type   `json:"type"`
-	Text  string `json:"text"`
-	Emoji *bool  `json:"emoji,omitempty"`
-}
-
-type ActionElement struct {
-	Type     string `json:"type"`
-	Text     Label  `json:"text"`
-	Value    string `json:"value"`
-	ActionID string `json:"action_id"`
-}
-
-type Type string
-
-const (
-	PlainText Type = "plain_text"
-)
-
-var newScheduleForm = CreateForm{
+var newForm = Form{
 	Blocks: []Block{
 		// schedule name text input
 		{
 			Type:    "input",
-			BlockID: "schedule_name_input_block",
+			BlockID: forminput.CreateScheduleName,
 			Element: &FormElement{
 				Type:     "plain_text_input",
-				ActionID: "schedule_name_input",
+				ActionID: forminput.CreateScheduleNameInput,
 				Placeholder: Label{
 					Type: "plain_text",
 					Text: "Schedule Name",
@@ -65,10 +24,10 @@ var newScheduleForm = CreateForm{
 		// shift start time picker in put
 		{
 			Type:    "input",
-			BlockID: "start_time_input_block",
+			BlockID: forminput.CreateScheduleStartTime,
 			Element: &FormElement{
 				Type:     "timepicker",
-				ActionID: "start_time_input",
+				ActionID: forminput.CreateScheduleStartTimeInput,
 				Placeholder: Label{
 					Type: "plain_text",
 					Text: "Select time",
@@ -82,10 +41,10 @@ var newScheduleForm = CreateForm{
 		// shift end time picker in put
 		{
 			Type:    "input",
-			BlockID: "end_time_input_block",
+			BlockID: forminput.CreateScheduleEndTime,
 			Element: &FormElement{
 				Type:     "timepicker",
-				ActionID: "end_time_input",
+				ActionID: forminput.CreateScheduleEndTimeInput,
 				Placeholder: Label{
 					Type: "plain_text",
 					Text: "Select time",
@@ -96,13 +55,13 @@ var newScheduleForm = CreateForm{
 				Text: "When does the shift end?",
 			},
 		},
-		// shift end time picker in put
+		// shift end time picker input
 		{
 			Type:    "input",
-			BlockID: "interval_select_input_block",
+			BlockID: forminput.CreateScheduleInterval,
 			Element: &FormElement{
 				Type:     "static_select",
-				ActionID: "interval_select_input",
+				ActionID: forminput.CreateScheduleIntervalInput,
 				Placeholder: Label{
 					Type: "plain_text",
 					Text: "Select interval",

@@ -11,10 +11,13 @@ const (
 )
 
 type Schedule struct {
-	ID        int
+	ID        string
 	TeamID    string
+	ChannelID string
 	Name      string
 	StartTime time.Time
 	EndTime   time.Time
 	Interval  Interval
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

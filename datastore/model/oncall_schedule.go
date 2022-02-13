@@ -24,49 +24,52 @@ import (
 
 // OncallSchedule is an object representing the database table.
 type OncallSchedule struct {
-	ID            string      `db:"id" boil:"id" json:"id" toml:"id" yaml:"id"`
-	TeamID        string      `db:"team_id" boil:"team_id" json:"team_id" toml:"team_id" yaml:"team_id"`
-	Name          string      `db:"name" boil:"name" json:"name" toml:"name" yaml:"name"`
-	Interval      string      `db:"interval" boil:"interval" json:"interval" toml:"interval" yaml:"interval"`
-	IsEnabled     bool        `db:"is_enabled" boil:"is_enabled" json:"is_enabled" toml:"is_enabled" yaml:"is_enabled"`
-	StartTime     time.Time   `db:"start_time" boil:"start_time" json:"start_time" toml:"start_time" yaml:"start_time"`
-	EndTime       time.Time   `db:"end_time" boil:"end_time" json:"end_time" toml:"end_time" yaml:"end_time"`
-	ActiveShift   null.String `db:"active_shift" boil:"active_shift" json:"active_shift,omitempty" toml:"active_shift" yaml:"active_shift,omitempty"`
-	OverrideShift null.String `db:"override_shift" boil:"override_shift" json:"override_shift,omitempty" toml:"override_shift" yaml:"override_shift,omitempty"`
-	CreatedAt     time.Time   `db:"created_at" boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt     time.Time   `db:"updated_at" boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
-	DeletedAt     null.Time   `db:"deleted_at" boil:"deleted_at" json:"deleted_at,omitempty" toml:"deleted_at" yaml:"deleted_at,omitempty"`
+	ID             string      `db:"id" boil:"id" json:"id" toml:"id" yaml:"id"`
+	TeamSlackID    string      `db:"team_slack_id" boil:"team_slack_id" json:"team_slack_id" toml:"team_slack_id" yaml:"team_slack_id"`
+	Name           string      `db:"name" boil:"name" json:"name" toml:"name" yaml:"name"`
+	Interval       string      `db:"interval" boil:"interval" json:"interval" toml:"interval" yaml:"interval"`
+	IsEnabled      bool        `db:"is_enabled" boil:"is_enabled" json:"is_enabled" toml:"is_enabled" yaml:"is_enabled"`
+	StartTime      time.Time   `db:"start_time" boil:"start_time" json:"start_time" toml:"start_time" yaml:"start_time"`
+	EndTime        time.Time   `db:"end_time" boil:"end_time" json:"end_time" toml:"end_time" yaml:"end_time"`
+	ActiveShift    null.String `db:"active_shift" boil:"active_shift" json:"active_shift,omitempty" toml:"active_shift" yaml:"active_shift,omitempty"`
+	OverrideShift  null.String `db:"override_shift" boil:"override_shift" json:"override_shift,omitempty" toml:"override_shift" yaml:"override_shift,omitempty"`
+	SlackChannelID string      `db:"slack_channel_id" boil:"slack_channel_id" json:"slack_channel_id" toml:"slack_channel_id" yaml:"slack_channel_id"`
+	CreatedAt      time.Time   `db:"created_at" boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt      time.Time   `db:"updated_at" boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	DeletedAt      null.Time   `db:"deleted_at" boil:"deleted_at" json:"deleted_at,omitempty" toml:"deleted_at" yaml:"deleted_at,omitempty"`
 
 	R *oncallScheduleR `db:"-" boil:"-" json:"-" toml:"-" yaml:"-"`
 	L oncallScheduleL  `db:"-" boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var OncallScheduleColumns = struct {
-	ID            string
-	TeamID        string
-	Name          string
-	Interval      string
-	IsEnabled     string
-	StartTime     string
-	EndTime       string
-	ActiveShift   string
-	OverrideShift string
-	CreatedAt     string
-	UpdatedAt     string
-	DeletedAt     string
+	ID             string
+	TeamSlackID    string
+	Name           string
+	Interval       string
+	IsEnabled      string
+	StartTime      string
+	EndTime        string
+	ActiveShift    string
+	OverrideShift  string
+	SlackChannelID string
+	CreatedAt      string
+	UpdatedAt      string
+	DeletedAt      string
 }{
-	ID:            "id",
-	TeamID:        "team_id",
-	Name:          "name",
-	Interval:      "interval",
-	IsEnabled:     "is_enabled",
-	StartTime:     "start_time",
-	EndTime:       "end_time",
-	ActiveShift:   "active_shift",
-	OverrideShift: "override_shift",
-	CreatedAt:     "created_at",
-	UpdatedAt:     "updated_at",
-	DeletedAt:     "deleted_at",
+	ID:             "id",
+	TeamSlackID:    "team_slack_id",
+	Name:           "name",
+	Interval:       "interval",
+	IsEnabled:      "is_enabled",
+	StartTime:      "start_time",
+	EndTime:        "end_time",
+	ActiveShift:    "active_shift",
+	OverrideShift:  "override_shift",
+	SlackChannelID: "slack_channel_id",
+	CreatedAt:      "created_at",
+	UpdatedAt:      "updated_at",
+	DeletedAt:      "deleted_at",
 }
 
 // Generated where
@@ -171,31 +174,33 @@ func (w whereHelpernull_Time) GTE(x null.Time) qm.QueryMod {
 }
 
 var OncallScheduleWhere = struct {
-	ID            whereHelperstring
-	TeamID        whereHelperstring
-	Name          whereHelperstring
-	Interval      whereHelperstring
-	IsEnabled     whereHelperbool
-	StartTime     whereHelpertime_Time
-	EndTime       whereHelpertime_Time
-	ActiveShift   whereHelpernull_String
-	OverrideShift whereHelpernull_String
-	CreatedAt     whereHelpertime_Time
-	UpdatedAt     whereHelpertime_Time
-	DeletedAt     whereHelpernull_Time
+	ID             whereHelperstring
+	TeamSlackID    whereHelperstring
+	Name           whereHelperstring
+	Interval       whereHelperstring
+	IsEnabled      whereHelperbool
+	StartTime      whereHelpertime_Time
+	EndTime        whereHelpertime_Time
+	ActiveShift    whereHelpernull_String
+	OverrideShift  whereHelpernull_String
+	SlackChannelID whereHelperstring
+	CreatedAt      whereHelpertime_Time
+	UpdatedAt      whereHelpertime_Time
+	DeletedAt      whereHelpernull_Time
 }{
-	ID:            whereHelperstring{field: "\"oncall_schedule\".\"id\""},
-	TeamID:        whereHelperstring{field: "\"oncall_schedule\".\"team_id\""},
-	Name:          whereHelperstring{field: "\"oncall_schedule\".\"name\""},
-	Interval:      whereHelperstring{field: "\"oncall_schedule\".\"interval\""},
-	IsEnabled:     whereHelperbool{field: "\"oncall_schedule\".\"is_enabled\""},
-	StartTime:     whereHelpertime_Time{field: "\"oncall_schedule\".\"start_time\""},
-	EndTime:       whereHelpertime_Time{field: "\"oncall_schedule\".\"end_time\""},
-	ActiveShift:   whereHelpernull_String{field: "\"oncall_schedule\".\"active_shift\""},
-	OverrideShift: whereHelpernull_String{field: "\"oncall_schedule\".\"override_shift\""},
-	CreatedAt:     whereHelpertime_Time{field: "\"oncall_schedule\".\"created_at\""},
-	UpdatedAt:     whereHelpertime_Time{field: "\"oncall_schedule\".\"updated_at\""},
-	DeletedAt:     whereHelpernull_Time{field: "\"oncall_schedule\".\"deleted_at\""},
+	ID:             whereHelperstring{field: "\"oncall_schedule\".\"id\""},
+	TeamSlackID:    whereHelperstring{field: "\"oncall_schedule\".\"team_slack_id\""},
+	Name:           whereHelperstring{field: "\"oncall_schedule\".\"name\""},
+	Interval:       whereHelperstring{field: "\"oncall_schedule\".\"interval\""},
+	IsEnabled:      whereHelperbool{field: "\"oncall_schedule\".\"is_enabled\""},
+	StartTime:      whereHelpertime_Time{field: "\"oncall_schedule\".\"start_time\""},
+	EndTime:        whereHelpertime_Time{field: "\"oncall_schedule\".\"end_time\""},
+	ActiveShift:    whereHelpernull_String{field: "\"oncall_schedule\".\"active_shift\""},
+	OverrideShift:  whereHelpernull_String{field: "\"oncall_schedule\".\"override_shift\""},
+	SlackChannelID: whereHelperstring{field: "\"oncall_schedule\".\"slack_channel_id\""},
+	CreatedAt:      whereHelpertime_Time{field: "\"oncall_schedule\".\"created_at\""},
+	UpdatedAt:      whereHelpertime_Time{field: "\"oncall_schedule\".\"updated_at\""},
+	DeletedAt:      whereHelpernull_Time{field: "\"oncall_schedule\".\"deleted_at\""},
 }
 
 // OncallScheduleRels is where relationship names are stored.
@@ -215,8 +220,8 @@ func (*oncallScheduleR) NewStruct() *oncallScheduleR {
 type oncallScheduleL struct{}
 
 var (
-	oncallScheduleAllColumns            = []string{"id", "team_id", "name", "interval", "is_enabled", "start_time", "end_time", "active_shift", "override_shift", "created_at", "updated_at", "deleted_at"}
-	oncallScheduleColumnsWithoutDefault = []string{"team_id", "name", "interval", "start_time", "end_time", "active_shift", "override_shift", "deleted_at"}
+	oncallScheduleAllColumns            = []string{"id", "team_slack_id", "name", "interval", "is_enabled", "start_time", "end_time", "active_shift", "override_shift", "slack_channel_id", "created_at", "updated_at", "deleted_at"}
+	oncallScheduleColumnsWithoutDefault = []string{"team_slack_id", "name", "interval", "start_time", "end_time", "active_shift", "override_shift", "slack_channel_id", "deleted_at"}
 	oncallScheduleColumnsWithDefault    = []string{"id", "is_enabled", "created_at", "updated_at"}
 	oncallSchedulePrimaryKeyColumns     = []string{"id"}
 )

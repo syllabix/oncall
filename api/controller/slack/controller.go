@@ -47,6 +47,8 @@ func (ctrl *Controller) HandleAction(w http.ResponseWriter, r *http.Request, _ h
 		return
 	}
 
+	fmt.Println(event.Type)
+
 	switch event.Type {
 	case slackevents.URLVerification:
 		ctrl.verifyURL(w, event.RawMessage)

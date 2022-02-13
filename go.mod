@@ -4,10 +4,12 @@ go 1.18
 
 require (
 	github.com/friendsofgo/errors v0.9.2
+	github.com/jmoiron/sqlx v1.3.4
 	github.com/joho/godotenv v1.4.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/kat-co/vala v0.0.0-20170210184112-42e1d8b61f12
 	github.com/lib/pq v1.10.4
+	github.com/rubenv/sql-migrate v1.1.1
 	github.com/slack-go/slack v0.10.1
 	github.com/spf13/viper v1.10.1
 	github.com/syllabix/logger v0.3.0
@@ -21,6 +23,7 @@ require (
 
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/go-gorp/gorp/v3 v3.0.2 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

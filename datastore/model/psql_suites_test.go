@@ -10,8 +10,6 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("Shifts", testShiftsUpsert)
 
-	t.Run("SlackChannels", testSlackChannelsUpsert)
-
 	t.Run("TeamMembers", testTeamMembersUpsert)
 
 	t.Run("Teams", testTeamsUpsert)

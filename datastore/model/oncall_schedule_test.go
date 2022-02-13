@@ -528,7 +528,7 @@ func testOncallSchedulesSelect(t *testing.T) {
 }
 
 var (
-	oncallScheduleDBTypes = map[string]string{`ID`: `uuid`, `TeamID`: `uuid`, `Name`: `text`, `Interval`: `enum.shift_interval('daily','weekly','bi-weekly','monthly')`, `IsEnabled`: `boolean`, `StartTime`: `timestamp with time zone`, `EndTime`: `timestamp with time zone`, `ActiveShift`: `uuid`, `OverrideShift`: `uuid`, `CreatedAt`: `timestamp with time zone`, `UpdatedAt`: `timestamp with time zone`, `DeletedAt`: `timestamp with time zone`}
+	oncallScheduleDBTypes = map[string]string{`ID`: `uuid`, `TeamSlackID`: `text`, `Name`: `text`, `Interval`: `enum.shift_interval('daily','weekly','bi-weekly','monthly')`, `IsEnabled`: `boolean`, `StartTime`: `time with time zone`, `EndTime`: `time with time zone`, `ActiveShift`: `uuid`, `OverrideShift`: `uuid`, `SlackChannelID`: `text`, `CreatedAt`: `timestamp with time zone`, `UpdatedAt`: `timestamp with time zone`, `DeletedAt`: `timestamp with time zone`}
 	_                     = bytes.MinRead
 )
 

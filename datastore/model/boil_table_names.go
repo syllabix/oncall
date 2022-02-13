@@ -6,14 +6,12 @@ package model
 var TableNames = struct {
 	OncallSchedule string
 	Shift          string
-	SlackChannels  string
 	TeamMembers    string
 	Teams          string
 	Users          string
 }{
 	OncallSchedule: "oncall_schedule",
 	Shift:          "shift",
-	SlackChannels:  "slack_channels",
 	TeamMembers:    "team_members",
 	Teams:          "teams",
 	Users:          "users",

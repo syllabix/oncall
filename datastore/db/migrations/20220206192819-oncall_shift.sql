@@ -4,6 +4,7 @@ CREATE TYPE shift_interval AS ENUM ('daily', 'weekly', 'bi-weekly', 'monthly');
 
 CREATE TABLE IF NOT EXISTS oncall_schedule (
     id uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
+    slack_channel_id text NOT NULL CONSTRAINT oncall_schedule_slack_id_uq UNIQUE,
     team_slack_id text NOT NULL,     
     name text NOT NULL,
     interval shift_interval NOT NULL,
@@ -12,7 +13,6 @@ CREATE TABLE IF NOT EXISTS oncall_schedule (
     end_time time with time zone NOT NULL,
     active_shift uuid NULL,
     override_shift uuid NULL,
-    slack_channel_id text NOT NULL,
     created_at timestamp with time zone NOT NULL DEFAULT ('now'::text)::timestamp with time zone,
     updated_at timestamp with time zone NOT NULL DEFAULT ('now'::text)::timestamp with time zone,
     deleted_at timestamp with time zone NULL

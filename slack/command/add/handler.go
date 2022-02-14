@@ -1,10 +1,11 @@
-package schedule
+package add
 
 import (
 	"errors"
 	"fmt"
 
 	"github.com/slack-go/slack"
+	"github.com/syllabix/oncall/datastore/schedule"
 	"github.com/syllabix/oncall/slack/util/mention"
 )
 
@@ -16,12 +17,13 @@ type Handler interface {
 	AddToSchedule(slack.SlashCommand) error
 }
 
-func NewHandler(parser *mention.Parser) Handler {
-	return &handler{parser}
+func NewHandler(parser *mention.Parser, scheduler schedule.Store) Handler {
+	return &handler{parser, scheduler}
 }
 
 type handler struct {
-	parser *mention.Parser
+	parser    *mention.Parser
+	scheduler schedule.Store
 }
 
 func (h *handler) AddToSchedule(cmd slack.SlashCommand) error {
@@ -29,6 +31,7 @@ func (h *handler) AddToSchedule(cmd slack.SlashCommand) error {
 	if err != nil {
 		return ErrInvalidInput
 	}
+
 	fmt.Println(users)
 	return nil
 }

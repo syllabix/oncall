@@ -1,10 +1,16 @@
 package schedule
 
 import (
+	"errors"
+
 	"github.com/syllabix/oncall/datastore/model"
 	"github.com/syllabix/oncall/datastore/schedule"
 	"github.com/syllabix/oncall/service/schedule/oncall"
 	"go.uber.org/zap"
+)
+
+var (
+	ErrAlreadyExists = errors.New("there is already a schedule configured for this channel")
 )
 
 type Manager interface {
@@ -20,10 +26,13 @@ type manager struct {
 	log *zap.Logger
 }
 
-func (m *manager) Create(schedule oncall.Schedule) (oncall.Schedule, error) {
-	result, err := m.db.Create(asModel(schedule))
+func (m *manager) Create(sched oncall.Schedule) (oncall.Schedule, error) {
+	result, err := m.db.Create(asModel(sched))
 	if err != nil {
 		m.log.Error("failed to create schedule", zap.Error(err))
+		if errors.Is(err, schedule.ErrAlreadyInUse) {
+			return oncall.Schedule{}, ErrAlreadyExists
+		}
 		return oncall.Schedule{}, err
 	}
 	return asSchedule(result), nil

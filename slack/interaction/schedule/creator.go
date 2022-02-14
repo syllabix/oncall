@@ -28,21 +28,26 @@ type creator struct {
 }
 
 func (c *creator) Create(callback slack.InteractionCallback) error {
-	schedule, err := c.mapToSchedule(callback)
+	sched, err := c.mapToSchedule(callback)
 	if err != nil {
 		return c.respond(callback.Channel.ID, callback.ResponseURL,
 			":warning: Please provide a name, start time, end time and rotation interval to set up a new schedule",
 		)
 	}
 
-	schedule, err = c.scheduler.Create(schedule)
+	sched, err = c.scheduler.Create(sched)
 	if err != nil {
+		if errors.Is(err, schedule.ErrAlreadyExists) {
+			return c.respond(callback.Channel.ID, callback.ResponseURL,
+				":sweat: I don't quite support managing multiple on call schedules in a single channel yet... sorry",
+			)
+		}
 		return c.respond(callback.Channel.ID, callback.ResponseURL,
 			":cry: O no... something did not go quite right when setting up your new schedule",
 		)
 	}
 
-	_, err = c.client.SetTopicOfConversation(callback.Channel.ID, "Active on call schedule: "+schedule.Name)
+	_, err = c.client.SetTopicOfConversation(callback.Channel.ID, "Active on call schedule: "+sched.Name)
 	if err != nil {
 		fmt.Println(err)
 	}

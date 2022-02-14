@@ -6,6 +6,7 @@ import (
 
 	"github.com/slack-go/slack"
 	"github.com/syllabix/oncall/config"
+	"github.com/syllabix/oncall/slack/command/add"
 	"github.com/syllabix/oncall/slack/command/schedule"
 )
 
@@ -23,14 +24,14 @@ type Handler interface {
 
 func NewHandler(
 	config config.SlackSettings,
-	scheduler schedule.Handler,
+	adder add.Handler,
 ) Handler {
-	return &handler{config, scheduler}
+	return &handler{config, adder}
 }
 
 type handler struct {
-	config    config.SlackSettings
-	scheduler schedule.Handler
+	config config.SlackSettings
+	adder  add.Handler
 }
 
 func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
@@ -59,9 +60,9 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 		}
 
 	case "/add":
-		err := h.scheduler.AddToSchedule(cmd)
+		err := h.adder.AddToSchedule(cmd)
 		if err != nil {
-			if errors.Is(err, schedule.ErrInvalidInput) {
+			if errors.Is(err, add.ErrInvalidInput) {
 				return slack.Attachment{
 					Title: "Failed to create new shifts",
 					Text:  ":warning: The */add* command expects one more @ user mentions to add them to a schedule",

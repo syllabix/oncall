@@ -3,6 +3,7 @@ package slack
 import (
 	"github.com/syllabix/oncall/slack/command"
 	"github.com/syllabix/oncall/slack/interaction"
+	"github.com/syllabix/oncall/slack/util"
 	"go.uber.org/fx"
 )
 
@@ -10,7 +11,6 @@ import (
 // handle Slack api messages, commands, interactions, events, etc
 var Module = fx.Options(
 	interaction.Module,
-	fx.Provide(
-		command.NewHandler,
-	),
+	util.Module,
+	command.Module,
 )

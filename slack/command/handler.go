@@ -23,12 +23,14 @@ type Handler interface {
 
 func NewHandler(
 	config config.SlackSettings,
+	scheduler schedule.Handler,
 ) Handler {
-	return &handler{config}
+	return &handler{config, scheduler}
 }
 
 type handler struct {
-	config config.SlackSettings
+	config    config.SlackSettings
+	scheduler schedule.Handler
 }
 
 func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
@@ -55,6 +57,25 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 				Text:  ":warning: The */schedule* command expects either a *create*, *view*, or *edit* sub command",
 			}, nil
 		}
+
+	case "/add":
+		err := h.scheduler.AddToSchedule(cmd)
+		if err != nil {
+			if errors.Is(err, schedule.ErrInvalidInput) {
+				return slack.Attachment{
+					Title: "Failed to create new shifts",
+					Text:  ":warning: The */add* command expects one more @ user mentions to add them to a schedule",
+				}, nil
+			}
+			return slack.Attachment{
+				Title: "Something went wrong",
+				Text:  ":cry: O wow this embarrassing but I was not able to add team members to the schedule",
+			}, nil
+		}
+		return slack.Attachment{
+			Title: "Schedule updated!",
+			Text:  ":white_check_mark: Your on call schedule has been updated",
+		}, nil
 
 	default:
 		return slack.Attachment{

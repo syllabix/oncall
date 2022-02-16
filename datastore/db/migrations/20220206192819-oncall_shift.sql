@@ -26,18 +26,6 @@ CREATE INDEX schedules_override_shift_idx ON schedules (override_shift);
 CREATE INDEX schedules_team_slack_id_idx ON schedules (team_slack_id);
 CREATE INDEX schedules_slack_channel_id_idx ON schedules (slack_channel_id);
 
-CREATE TABLE IF NOT EXISTS shifts (
-    id uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id uuid NOT NULL,     
-    schedule_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL DEFAULT ('now'::text)::timestamp with time zone,
-    updated_at timestamp with time zone NOT NULL DEFAULT ('now'::text)::timestamp with time zone,
-    deleted_at timestamp with time zone NULL
-);
-
-CREATE INDEX shift_user_id_idx ON shifts (user_id);
-CREATE INDEX shift_oncall_schedule_id ON shifts (schedule_id);
-
 -- +migrate Down
 DROP INDEX IF EXISTS schedule_created_at_idx;
 DROP INDEX IF EXISTS schedule_deleted_at_idx;
@@ -45,9 +33,5 @@ DROP INDEX IF EXISTS schedule_active_shift_idx;
 DROP INDEX IF EXISTS schedule_override_shift_idx;
 DROP INDEX IF EXISTS schedule_team_id_idx;
 DROP TABLE IF EXISTS schedules;
-
-DROP INDEX IF EXISTS shifts_user_id_idx;
-DROP INDEX IF EXISTS shifts_schedule_id;
-DROP TABLE IF EXISTS shifts;
 
 DROP TYPE IF EXISTS shift_interval;

@@ -15,6 +15,10 @@ func createStmt(db db.Database) (*sqlx.NamedStmt, error) {
 }
 
 const upsertUser = `
-	INSERT INTO users (id, slack_id, email, first_name, last_name, avatar_url, display_name)
-	VALUES (:id, :slack_id, :email, :first_name, :last_name, :avatar_url, :display_name)
-	ON CONFLICT (id) DO NOTHING`
+	INSERT INTO users (id, slack_id, slack_handle, email, first_name, last_name, avatar_url, display_name)
+	VALUES (:id, :slack_id, :slack_handle, :email, :first_name, :last_name, :avatar_url, :display_name)
+	ON CONFLICT (slack_id) DO NOTHING`
+
+const updateScheduleShift = `
+	UPDATE schedules set shifts = :shifts, active_shift = :active_shift, updated_at = now() where id = :id;
+`

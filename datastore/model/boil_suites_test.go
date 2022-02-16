@@ -13,7 +13,6 @@ import "testing"
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
 	t.Run("Schedules", testSchedules)
-	t.Run("Shifts", testShifts)
 	t.Run("TeamMembers", testTeamMembers)
 	t.Run("Teams", testTeams)
 	t.Run("Users", testUsers)
@@ -21,28 +20,24 @@ func TestParent(t *testing.T) {
 
 func TestSoftDelete(t *testing.T) {
 	t.Run("Schedules", testSchedulesSoftDelete)
-	t.Run("Shifts", testShiftsSoftDelete)
 	t.Run("Teams", testTeamsSoftDelete)
 	t.Run("Users", testUsersSoftDelete)
 }
 
 func TestQuerySoftDeleteAll(t *testing.T) {
 	t.Run("Schedules", testSchedulesQuerySoftDeleteAll)
-	t.Run("Shifts", testShiftsQuerySoftDeleteAll)
 	t.Run("Teams", testTeamsQuerySoftDeleteAll)
 	t.Run("Users", testUsersQuerySoftDeleteAll)
 }
 
 func TestSliceSoftDeleteAll(t *testing.T) {
 	t.Run("Schedules", testSchedulesSliceSoftDeleteAll)
-	t.Run("Shifts", testShiftsSliceSoftDeleteAll)
 	t.Run("Teams", testTeamsSliceSoftDeleteAll)
 	t.Run("Users", testUsersSliceSoftDeleteAll)
 }
 
 func TestDelete(t *testing.T) {
 	t.Run("Schedules", testSchedulesDelete)
-	t.Run("Shifts", testShiftsDelete)
 	t.Run("TeamMembers", testTeamMembersDelete)
 	t.Run("Teams", testTeamsDelete)
 	t.Run("Users", testUsersDelete)
@@ -50,7 +45,6 @@ func TestDelete(t *testing.T) {
 
 func TestQueryDeleteAll(t *testing.T) {
 	t.Run("Schedules", testSchedulesQueryDeleteAll)
-	t.Run("Shifts", testShiftsQueryDeleteAll)
 	t.Run("TeamMembers", testTeamMembersQueryDeleteAll)
 	t.Run("Teams", testTeamsQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
@@ -58,7 +52,6 @@ func TestQueryDeleteAll(t *testing.T) {
 
 func TestSliceDeleteAll(t *testing.T) {
 	t.Run("Schedules", testSchedulesSliceDeleteAll)
-	t.Run("Shifts", testShiftsSliceDeleteAll)
 	t.Run("TeamMembers", testTeamMembersSliceDeleteAll)
 	t.Run("Teams", testTeamsSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
@@ -66,7 +59,6 @@ func TestSliceDeleteAll(t *testing.T) {
 
 func TestExists(t *testing.T) {
 	t.Run("Schedules", testSchedulesExists)
-	t.Run("Shifts", testShiftsExists)
 	t.Run("TeamMembers", testTeamMembersExists)
 	t.Run("Teams", testTeamsExists)
 	t.Run("Users", testUsersExists)
@@ -74,7 +66,6 @@ func TestExists(t *testing.T) {
 
 func TestFind(t *testing.T) {
 	t.Run("Schedules", testSchedulesFind)
-	t.Run("Shifts", testShiftsFind)
 	t.Run("TeamMembers", testTeamMembersFind)
 	t.Run("Teams", testTeamsFind)
 	t.Run("Users", testUsersFind)
@@ -82,7 +73,6 @@ func TestFind(t *testing.T) {
 
 func TestBind(t *testing.T) {
 	t.Run("Schedules", testSchedulesBind)
-	t.Run("Shifts", testShiftsBind)
 	t.Run("TeamMembers", testTeamMembersBind)
 	t.Run("Teams", testTeamsBind)
 	t.Run("Users", testUsersBind)
@@ -90,7 +80,6 @@ func TestBind(t *testing.T) {
 
 func TestOne(t *testing.T) {
 	t.Run("Schedules", testSchedulesOne)
-	t.Run("Shifts", testShiftsOne)
 	t.Run("TeamMembers", testTeamMembersOne)
 	t.Run("Teams", testTeamsOne)
 	t.Run("Users", testUsersOne)
@@ -98,7 +87,6 @@ func TestOne(t *testing.T) {
 
 func TestAll(t *testing.T) {
 	t.Run("Schedules", testSchedulesAll)
-	t.Run("Shifts", testShiftsAll)
 	t.Run("TeamMembers", testTeamMembersAll)
 	t.Run("Teams", testTeamsAll)
 	t.Run("Users", testUsersAll)
@@ -106,7 +94,6 @@ func TestAll(t *testing.T) {
 
 func TestCount(t *testing.T) {
 	t.Run("Schedules", testSchedulesCount)
-	t.Run("Shifts", testShiftsCount)
 	t.Run("TeamMembers", testTeamMembersCount)
 	t.Run("Teams", testTeamsCount)
 	t.Run("Users", testUsersCount)
@@ -115,8 +102,6 @@ func TestCount(t *testing.T) {
 func TestInsert(t *testing.T) {
 	t.Run("Schedules", testSchedulesInsert)
 	t.Run("Schedules", testSchedulesInsertWhitelist)
-	t.Run("Shifts", testShiftsInsert)
-	t.Run("Shifts", testShiftsInsertWhitelist)
 	t.Run("TeamMembers", testTeamMembersInsert)
 	t.Run("TeamMembers", testTeamMembersInsertWhitelist)
 	t.Run("Teams", testTeamsInsert)
@@ -167,7 +152,6 @@ func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
 	t.Run("Schedules", testSchedulesReload)
-	t.Run("Shifts", testShiftsReload)
 	t.Run("TeamMembers", testTeamMembersReload)
 	t.Run("Teams", testTeamsReload)
 	t.Run("Users", testUsersReload)
@@ -175,7 +159,6 @@ func TestReload(t *testing.T) {
 
 func TestReloadAll(t *testing.T) {
 	t.Run("Schedules", testSchedulesReloadAll)
-	t.Run("Shifts", testShiftsReloadAll)
 	t.Run("TeamMembers", testTeamMembersReloadAll)
 	t.Run("Teams", testTeamsReloadAll)
 	t.Run("Users", testUsersReloadAll)
@@ -183,7 +166,6 @@ func TestReloadAll(t *testing.T) {
 
 func TestSelect(t *testing.T) {
 	t.Run("Schedules", testSchedulesSelect)
-	t.Run("Shifts", testShiftsSelect)
 	t.Run("TeamMembers", testTeamMembersSelect)
 	t.Run("Teams", testTeamsSelect)
 	t.Run("Users", testUsersSelect)
@@ -191,7 +173,6 @@ func TestSelect(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	t.Run("Schedules", testSchedulesUpdate)
-	t.Run("Shifts", testShiftsUpdate)
 	t.Run("TeamMembers", testTeamMembersUpdate)
 	t.Run("Teams", testTeamsUpdate)
 	t.Run("Users", testUsersUpdate)
@@ -199,7 +180,6 @@ func TestUpdate(t *testing.T) {
 
 func TestSliceUpdateAll(t *testing.T) {
 	t.Run("Schedules", testSchedulesSliceUpdateAll)
-	t.Run("Shifts", testShiftsSliceUpdateAll)
 	t.Run("TeamMembers", testTeamMembersSliceUpdateAll)
 	t.Run("Teams", testTeamsSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)

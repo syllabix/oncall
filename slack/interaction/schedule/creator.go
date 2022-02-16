@@ -47,7 +47,7 @@ func (c *creator) Create(callback slack.InteractionCallback) error {
 		)
 	}
 
-	_, err = c.client.SetTopicOfConversation(callback.Channel.ID, "Active on call schedule: "+sched.Name)
+	_, err = c.client.SetTopicOfConversation(callback.Channel.ID, sched.Name+": no engineer on duty")
 	if err != nil {
 		fmt.Println(err)
 	}

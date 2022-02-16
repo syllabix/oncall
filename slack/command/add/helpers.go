@@ -6,10 +6,11 @@ import (
 	"github.com/syllabix/oncall/datastore/model"
 )
 
-func toUserModel(user *slack.User) model.User {
+func toUserModel(user *slack.User, handle string) model.User {
 	return model.User{
 		ID:          uuid.NewString(),
 		SlackID:     user.ID,
+		SlackHandle: handle,
 		Email:       user.Profile.Email,
 		FirstName:   user.Profile.FirstName,
 		LastName:    user.Profile.LastName,

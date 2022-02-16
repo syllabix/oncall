@@ -12,8 +12,9 @@ var (
 )
 
 type User struct {
-	ID     string
-	NameID string
+	ID       string
+	NameID   string
+	HandleID string
 }
 
 type Parser struct {
@@ -39,8 +40,9 @@ func (p *Parser) Parse(input string) (User, error) {
 	}
 
 	return User{
-		ID:     matches[1],
-		NameID: matches[2],
+		ID:       matches[1],
+		NameID:   matches[2],
+		HandleID: input,
 	}, nil
 }
 

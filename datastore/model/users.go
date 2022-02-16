@@ -26,6 +26,7 @@ import (
 type User struct {
 	ID          string    `db:"id" boil:"id" json:"id" toml:"id" yaml:"id"`
 	SlackID     string    `db:"slack_id" boil:"slack_id" json:"slack_id" toml:"slack_id" yaml:"slack_id"`
+	SlackHandle string    `db:"slack_handle" boil:"slack_handle" json:"slack_handle" toml:"slack_handle" yaml:"slack_handle"`
 	Email       string    `db:"email" boil:"email" json:"email" toml:"email" yaml:"email"`
 	FirstName   string    `db:"first_name" boil:"first_name" json:"first_name" toml:"first_name" yaml:"first_name"`
 	LastName    string    `db:"last_name" boil:"last_name" json:"last_name" toml:"last_name" yaml:"last_name"`
@@ -42,6 +43,7 @@ type User struct {
 var UserColumns = struct {
 	ID          string
 	SlackID     string
+	SlackHandle string
 	Email       string
 	FirstName   string
 	LastName    string
@@ -53,6 +55,7 @@ var UserColumns = struct {
 }{
 	ID:          "id",
 	SlackID:     "slack_id",
+	SlackHandle: "slack_handle",
 	Email:       "email",
 	FirstName:   "first_name",
 	LastName:    "last_name",
@@ -68,6 +71,7 @@ var UserColumns = struct {
 var UserWhere = struct {
 	ID          whereHelperstring
 	SlackID     whereHelperstring
+	SlackHandle whereHelperstring
 	Email       whereHelperstring
 	FirstName   whereHelperstring
 	LastName    whereHelperstring
@@ -79,6 +83,7 @@ var UserWhere = struct {
 }{
 	ID:          whereHelperstring{field: "\"users\".\"id\""},
 	SlackID:     whereHelperstring{field: "\"users\".\"slack_id\""},
+	SlackHandle: whereHelperstring{field: "\"users\".\"slack_handle\""},
 	Email:       whereHelperstring{field: "\"users\".\"email\""},
 	FirstName:   whereHelperstring{field: "\"users\".\"first_name\""},
 	LastName:    whereHelperstring{field: "\"users\".\"last_name\""},
@@ -106,8 +111,8 @@ func (*userR) NewStruct() *userR {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "slack_id", "email", "first_name", "last_name", "avatar_url", "display_name", "created_at", "updated_at", "deleted_at"}
-	userColumnsWithoutDefault = []string{"slack_id", "email", "first_name", "last_name", "avatar_url", "display_name", "deleted_at"}
+	userAllColumns            = []string{"id", "slack_id", "slack_handle", "email", "first_name", "last_name", "avatar_url", "display_name", "created_at", "updated_at", "deleted_at"}
+	userColumnsWithoutDefault = []string{"slack_id", "slack_handle", "email", "first_name", "last_name", "avatar_url", "display_name", "deleted_at"}
 	userColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	userPrimaryKeyColumns     = []string{"id"}
 )

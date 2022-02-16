@@ -17,7 +17,8 @@ CREATE INDEX team_deleted_at_idx ON teams (deleted_at DESC);
 
 CREATE TABLE IF NOT EXISTS users (
     id uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
-    slack_id text NOT NULL CONSTRAINT user_slack_id_uq UNIQUE, 
+    slack_id text NOT NULL CONSTRAINT user_slack_id_uq UNIQUE,
+    slack_handle text NOT NULL,
     email text NOT NULL,
     first_name text NOT NULL,
     last_name text NOT NULL,    

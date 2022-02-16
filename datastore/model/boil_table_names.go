@@ -5,13 +5,11 @@ package model
 
 var TableNames = struct {
 	Schedules   string
-	Shifts      string
 	TeamMembers string
 	Teams       string
 	Users       string
 }{
 	Schedules:   "schedules",
-	Shifts:      "shifts",
 	TeamMembers: "team_members",
 	Teams:       "teams",
 	Users:       "users",

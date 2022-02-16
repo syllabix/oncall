@@ -7,6 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/syllabix/oncall/datastore/db"
 	"github.com/syllabix/oncall/datastore/model"
+	"github.com/volatiletech/null/v8"
 )
 
 type Store struct {
@@ -52,12 +53,14 @@ func (s *Store) GetForChannel(id string) (model.ScheduleSlice, error) {
 	return schedules, nil
 }
 
-func (s *Store) AddToSchedule(channelID string, users []model.User) (Overview, error) {
+// TODO: this is pretty sad - but should work for now - rethink the data model and reduce
+// db trips if possible
+func (s *Store) AddToSchedule(channelID string, users []model.User) (AddResult, error) {
 
 	// failure helpers
 	var (
-		failure  = failure[Overview]
-		rollback = rollback[Overview]
+		failure  = failure[AddResult]
+		rollback = rollback[AddResult]
 	)
 
 	tx, err := s.db.BeginTxx(context.TODO(), nil)
@@ -71,13 +74,22 @@ func (s *Store) AddToSchedule(channelID string, users []model.User) (Overview, e
 		return rollback(tx, err)
 	}
 
-	var shifts model.ShiftSlice
-	err = tx.Select(&shifts, "SELECT * FROM shifts WHERE schedule_id = $1", schedule.ID)
+	_, err = tx.NamedExec(upsertUser, users)
 	if err != nil {
 		return rollback(tx, err)
 	}
 
-	_, err = tx.NamedExec(upsertUser, users)
+	var (
+		active *model.User
+	)
+
+	if schedule.ActiveShift.IsZero() {
+		active = &users[0]
+		schedule.ActiveShift = null.StringFrom(active.ID)
+	}
+
+	schedule.Shifts = append(schedule.Shifts, uniqueIdsFrom(users, schedule)...)
+	_, err = tx.NamedExec(updateScheduleShift, schedule)
 	if err != nil {
 		return rollback(tx, err)
 	}
@@ -87,5 +99,8 @@ func (s *Store) AddToSchedule(channelID string, users []model.User) (Overview, e
 		return failure(err)
 	}
 
-	return Overview{}, nil
+	return AddResult{
+		Schedule:       schedule,
+		NewActiveShift: active,
+	}, nil
 }

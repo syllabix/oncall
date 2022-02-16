@@ -14,6 +14,11 @@ var (
 	ErrNoAvailableSchedule = errors.New("there is no available schedule to add a user to")
 )
 
+type Result struct {
+	ScheduleName   string
+	EngineerOnDuty string
+}
+
 type Handler interface {
 	AddToSchedule(slack.SlashCommand) error
 }
@@ -40,15 +45,22 @@ func (h *handler) AddToSchedule(cmd slack.SlashCommand) error {
 		if err != nil {
 			return err
 		}
-		usrModels = append(usrModels, toUserModel(usr))
+		usrModels = append(usrModels, toUserModel(usr, user.HandleID))
 	}
 
-	_, err = h.scheduler.AddToSchedule(cmd.ChannelID, usrModels)
+	result, err := h.scheduler.AddToSchedule(cmd.ChannelID, usrModels)
 	if err != nil {
 		if errors.Is(err, schedule.ErrNotFound) {
 			return ErrNoAvailableSchedule
 		}
 		return err
+	}
+
+	if result.NewActiveShift != nil {
+		_, err = h.client.SetTopicOfConversation(cmd.ChannelID, result.Schedule.Name+": eod "+result.NewActiveShift.SlackHandle)
+		if err != nil {
+			// ignore for now - perhaps retry if this fails?
+		}
 	}
 
 	return nil

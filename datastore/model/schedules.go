@@ -19,31 +19,34 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/volatiletech/sqlboiler/v4/queries/qmhelper"
+	"github.com/volatiletech/sqlboiler/v4/types"
 	"github.com/volatiletech/strmangle"
 )
 
-// OncallSchedule is an object representing the database table.
-type OncallSchedule struct {
-	ID             string      `db:"id" boil:"id" json:"id" toml:"id" yaml:"id"`
-	TeamSlackID    string      `db:"team_slack_id" boil:"team_slack_id" json:"team_slack_id" toml:"team_slack_id" yaml:"team_slack_id"`
-	Name           string      `db:"name" boil:"name" json:"name" toml:"name" yaml:"name"`
-	Interval       string      `db:"interval" boil:"interval" json:"interval" toml:"interval" yaml:"interval"`
-	IsEnabled      bool        `db:"is_enabled" boil:"is_enabled" json:"is_enabled" toml:"is_enabled" yaml:"is_enabled"`
-	StartTime      time.Time   `db:"start_time" boil:"start_time" json:"start_time" toml:"start_time" yaml:"start_time"`
-	EndTime        time.Time   `db:"end_time" boil:"end_time" json:"end_time" toml:"end_time" yaml:"end_time"`
-	ActiveShift    null.String `db:"active_shift" boil:"active_shift" json:"active_shift,omitempty" toml:"active_shift" yaml:"active_shift,omitempty"`
-	OverrideShift  null.String `db:"override_shift" boil:"override_shift" json:"override_shift,omitempty" toml:"override_shift" yaml:"override_shift,omitempty"`
-	SlackChannelID string      `db:"slack_channel_id" boil:"slack_channel_id" json:"slack_channel_id" toml:"slack_channel_id" yaml:"slack_channel_id"`
-	CreatedAt      time.Time   `db:"created_at" boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt      time.Time   `db:"updated_at" boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
-	DeletedAt      null.Time   `db:"deleted_at" boil:"deleted_at" json:"deleted_at,omitempty" toml:"deleted_at" yaml:"deleted_at,omitempty"`
+// Schedule is an object representing the database table.
+type Schedule struct {
+	ID             string            `db:"id" boil:"id" json:"id" toml:"id" yaml:"id"`
+	SlackChannelID string            `db:"slack_channel_id" boil:"slack_channel_id" json:"slack_channel_id" toml:"slack_channel_id" yaml:"slack_channel_id"`
+	TeamSlackID    string            `db:"team_slack_id" boil:"team_slack_id" json:"team_slack_id" toml:"team_slack_id" yaml:"team_slack_id"`
+	Name           string            `db:"name" boil:"name" json:"name" toml:"name" yaml:"name"`
+	Interval       string            `db:"interval" boil:"interval" json:"interval" toml:"interval" yaml:"interval"`
+	IsEnabled      bool              `db:"is_enabled" boil:"is_enabled" json:"is_enabled" toml:"is_enabled" yaml:"is_enabled"`
+	StartTime      time.Time         `db:"start_time" boil:"start_time" json:"start_time" toml:"start_time" yaml:"start_time"`
+	EndTime        time.Time         `db:"end_time" boil:"end_time" json:"end_time" toml:"end_time" yaml:"end_time"`
+	ActiveShift    null.String       `db:"active_shift" boil:"active_shift" json:"active_shift,omitempty" toml:"active_shift" yaml:"active_shift,omitempty"`
+	OverrideShift  null.String       `db:"override_shift" boil:"override_shift" json:"override_shift,omitempty" toml:"override_shift" yaml:"override_shift,omitempty"`
+	Shifts         types.StringArray `db:"shifts" boil:"shifts" json:"shifts" toml:"shifts" yaml:"shifts"`
+	CreatedAt      time.Time         `db:"created_at" boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt      time.Time         `db:"updated_at" boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	DeletedAt      null.Time         `db:"deleted_at" boil:"deleted_at" json:"deleted_at,omitempty" toml:"deleted_at" yaml:"deleted_at,omitempty"`
 
-	R *oncallScheduleR `db:"-" boil:"-" json:"-" toml:"-" yaml:"-"`
-	L oncallScheduleL  `db:"-" boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *scheduleR `db:"-" boil:"-" json:"-" toml:"-" yaml:"-"`
+	L scheduleL  `db:"-" boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
-var OncallScheduleColumns = struct {
+var ScheduleColumns = struct {
 	ID             string
+	SlackChannelID string
 	TeamSlackID    string
 	Name           string
 	Interval       string
@@ -52,12 +55,13 @@ var OncallScheduleColumns = struct {
 	EndTime        string
 	ActiveShift    string
 	OverrideShift  string
-	SlackChannelID string
+	Shifts         string
 	CreatedAt      string
 	UpdatedAt      string
 	DeletedAt      string
 }{
 	ID:             "id",
+	SlackChannelID: "slack_channel_id",
 	TeamSlackID:    "team_slack_id",
 	Name:           "name",
 	Interval:       "interval",
@@ -66,7 +70,7 @@ var OncallScheduleColumns = struct {
 	EndTime:        "end_time",
 	ActiveShift:    "active_shift",
 	OverrideShift:  "override_shift",
-	SlackChannelID: "slack_channel_id",
+	Shifts:         "shifts",
 	CreatedAt:      "created_at",
 	UpdatedAt:      "updated_at",
 	DeletedAt:      "deleted_at",
@@ -150,6 +154,27 @@ func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
 
+type whereHelpertypes_StringArray struct{ field string }
+
+func (w whereHelpertypes_StringArray) EQ(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelpertypes_StringArray) NEQ(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelpertypes_StringArray) LT(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpertypes_StringArray) LTE(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpertypes_StringArray) GT(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpertypes_StringArray) GTE(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
 type whereHelpernull_Time struct{ field string }
 
 func (w whereHelpernull_Time) EQ(x null.Time) qm.QueryMod {
@@ -173,8 +198,9 @@ func (w whereHelpernull_Time) GTE(x null.Time) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
 
-var OncallScheduleWhere = struct {
+var ScheduleWhere = struct {
 	ID             whereHelperstring
+	SlackChannelID whereHelperstring
 	TeamSlackID    whereHelperstring
 	Name           whereHelperstring
 	Interval       whereHelperstring
@@ -183,70 +209,71 @@ var OncallScheduleWhere = struct {
 	EndTime        whereHelpertime_Time
 	ActiveShift    whereHelpernull_String
 	OverrideShift  whereHelpernull_String
-	SlackChannelID whereHelperstring
+	Shifts         whereHelpertypes_StringArray
 	CreatedAt      whereHelpertime_Time
 	UpdatedAt      whereHelpertime_Time
 	DeletedAt      whereHelpernull_Time
 }{
-	ID:             whereHelperstring{field: "\"oncall_schedule\".\"id\""},
-	TeamSlackID:    whereHelperstring{field: "\"oncall_schedule\".\"team_slack_id\""},
-	Name:           whereHelperstring{field: "\"oncall_schedule\".\"name\""},
-	Interval:       whereHelperstring{field: "\"oncall_schedule\".\"interval\""},
-	IsEnabled:      whereHelperbool{field: "\"oncall_schedule\".\"is_enabled\""},
-	StartTime:      whereHelpertime_Time{field: "\"oncall_schedule\".\"start_time\""},
-	EndTime:        whereHelpertime_Time{field: "\"oncall_schedule\".\"end_time\""},
-	ActiveShift:    whereHelpernull_String{field: "\"oncall_schedule\".\"active_shift\""},
-	OverrideShift:  whereHelpernull_String{field: "\"oncall_schedule\".\"override_shift\""},
-	SlackChannelID: whereHelperstring{field: "\"oncall_schedule\".\"slack_channel_id\""},
-	CreatedAt:      whereHelpertime_Time{field: "\"oncall_schedule\".\"created_at\""},
-	UpdatedAt:      whereHelpertime_Time{field: "\"oncall_schedule\".\"updated_at\""},
-	DeletedAt:      whereHelpernull_Time{field: "\"oncall_schedule\".\"deleted_at\""},
+	ID:             whereHelperstring{field: "\"schedules\".\"id\""},
+	SlackChannelID: whereHelperstring{field: "\"schedules\".\"slack_channel_id\""},
+	TeamSlackID:    whereHelperstring{field: "\"schedules\".\"team_slack_id\""},
+	Name:           whereHelperstring{field: "\"schedules\".\"name\""},
+	Interval:       whereHelperstring{field: "\"schedules\".\"interval\""},
+	IsEnabled:      whereHelperbool{field: "\"schedules\".\"is_enabled\""},
+	StartTime:      whereHelpertime_Time{field: "\"schedules\".\"start_time\""},
+	EndTime:        whereHelpertime_Time{field: "\"schedules\".\"end_time\""},
+	ActiveShift:    whereHelpernull_String{field: "\"schedules\".\"active_shift\""},
+	OverrideShift:  whereHelpernull_String{field: "\"schedules\".\"override_shift\""},
+	Shifts:         whereHelpertypes_StringArray{field: "\"schedules\".\"shifts\""},
+	CreatedAt:      whereHelpertime_Time{field: "\"schedules\".\"created_at\""},
+	UpdatedAt:      whereHelpertime_Time{field: "\"schedules\".\"updated_at\""},
+	DeletedAt:      whereHelpernull_Time{field: "\"schedules\".\"deleted_at\""},
 }
 
-// OncallScheduleRels is where relationship names are stored.
-var OncallScheduleRels = struct {
+// ScheduleRels is where relationship names are stored.
+var ScheduleRels = struct {
 }{}
 
-// oncallScheduleR is where relationships are stored.
-type oncallScheduleR struct {
+// scheduleR is where relationships are stored.
+type scheduleR struct {
 }
 
 // NewStruct creates a new relationship struct
-func (*oncallScheduleR) NewStruct() *oncallScheduleR {
-	return &oncallScheduleR{}
+func (*scheduleR) NewStruct() *scheduleR {
+	return &scheduleR{}
 }
 
-// oncallScheduleL is where Load methods for each relationship are stored.
-type oncallScheduleL struct{}
+// scheduleL is where Load methods for each relationship are stored.
+type scheduleL struct{}
 
 var (
-	oncallScheduleAllColumns            = []string{"id", "team_slack_id", "name", "interval", "is_enabled", "start_time", "end_time", "active_shift", "override_shift", "slack_channel_id", "created_at", "updated_at", "deleted_at"}
-	oncallScheduleColumnsWithoutDefault = []string{"team_slack_id", "name", "interval", "start_time", "end_time", "active_shift", "override_shift", "slack_channel_id", "deleted_at"}
-	oncallScheduleColumnsWithDefault    = []string{"id", "is_enabled", "created_at", "updated_at"}
-	oncallSchedulePrimaryKeyColumns     = []string{"id"}
+	scheduleAllColumns            = []string{"id", "slack_channel_id", "team_slack_id", "name", "interval", "is_enabled", "start_time", "end_time", "active_shift", "override_shift", "shifts", "created_at", "updated_at", "deleted_at"}
+	scheduleColumnsWithoutDefault = []string{"slack_channel_id", "team_slack_id", "name", "interval", "start_time", "end_time", "active_shift", "override_shift", "deleted_at"}
+	scheduleColumnsWithDefault    = []string{"id", "is_enabled", "shifts", "created_at", "updated_at"}
+	schedulePrimaryKeyColumns     = []string{"id"}
 )
 
 type (
-	// OncallScheduleSlice is an alias for a slice of pointers to OncallSchedule.
-	// This should generally be used opposed to []OncallSchedule.
-	OncallScheduleSlice []*OncallSchedule
+	// ScheduleSlice is an alias for a slice of pointers to Schedule.
+	// This should generally be used opposed to []Schedule.
+	ScheduleSlice []*Schedule
 
-	oncallScheduleQuery struct {
+	scheduleQuery struct {
 		*queries.Query
 	}
 )
 
 // Cache for insert, update and upsert
 var (
-	oncallScheduleType                 = reflect.TypeOf(&OncallSchedule{})
-	oncallScheduleMapping              = queries.MakeStructMapping(oncallScheduleType)
-	oncallSchedulePrimaryKeyMapping, _ = queries.BindMapping(oncallScheduleType, oncallScheduleMapping, oncallSchedulePrimaryKeyColumns)
-	oncallScheduleInsertCacheMut       sync.RWMutex
-	oncallScheduleInsertCache          = make(map[string]insertCache)
-	oncallScheduleUpdateCacheMut       sync.RWMutex
-	oncallScheduleUpdateCache          = make(map[string]updateCache)
-	oncallScheduleUpsertCacheMut       sync.RWMutex
-	oncallScheduleUpsertCache          = make(map[string]insertCache)
+	scheduleType                 = reflect.TypeOf(&Schedule{})
+	scheduleMapping              = queries.MakeStructMapping(scheduleType)
+	schedulePrimaryKeyMapping, _ = queries.BindMapping(scheduleType, scheduleMapping, schedulePrimaryKeyColumns)
+	scheduleInsertCacheMut       sync.RWMutex
+	scheduleInsertCache          = make(map[string]insertCache)
+	scheduleUpdateCacheMut       sync.RWMutex
+	scheduleUpdateCache          = make(map[string]updateCache)
+	scheduleUpsertCacheMut       sync.RWMutex
+	scheduleUpsertCache          = make(map[string]insertCache)
 )
 
 var (
@@ -257,9 +284,9 @@ var (
 	_ = qmhelper.Where
 )
 
-// One returns a single oncallSchedule record from the query.
-func (q oncallScheduleQuery) One(ctx context.Context, exec boil.ContextExecutor) (*OncallSchedule, error) {
-	o := &OncallSchedule{}
+// One returns a single schedule record from the query.
+func (q scheduleQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Schedule, error) {
+	o := &Schedule{}
 
 	queries.SetLimit(q.Query, 1)
 
@@ -268,26 +295,26 @@ func (q oncallScheduleQuery) One(ctx context.Context, exec boil.ContextExecutor)
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "model: failed to execute a one query for oncall_schedule")
+		return nil, errors.Wrap(err, "model: failed to execute a one query for schedules")
 	}
 
 	return o, nil
 }
 
-// All returns all OncallSchedule records from the query.
-func (q oncallScheduleQuery) All(ctx context.Context, exec boil.ContextExecutor) (OncallScheduleSlice, error) {
-	var o []*OncallSchedule
+// All returns all Schedule records from the query.
+func (q scheduleQuery) All(ctx context.Context, exec boil.ContextExecutor) (ScheduleSlice, error) {
+	var o []*Schedule
 
 	err := q.Bind(ctx, exec, &o)
 	if err != nil {
-		return nil, errors.Wrap(err, "model: failed to assign all query results to OncallSchedule slice")
+		return nil, errors.Wrap(err, "model: failed to assign all query results to Schedule slice")
 	}
 
 	return o, nil
 }
 
-// Count returns the count of all OncallSchedule records in the query.
-func (q oncallScheduleQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+// Count returns the count of all Schedule records in the query.
+func (q scheduleQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -295,14 +322,14 @@ func (q oncallScheduleQuery) Count(ctx context.Context, exec boil.ContextExecuto
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: failed to count oncall_schedule rows")
+		return 0, errors.Wrap(err, "model: failed to count schedules rows")
 	}
 
 	return count, nil
 }
 
 // Exists checks if the row exists in the table.
-func (q oncallScheduleQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
+func (q scheduleQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -311,49 +338,49 @@ func (q oncallScheduleQuery) Exists(ctx context.Context, exec boil.ContextExecut
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "model: failed to check if oncall_schedule exists")
+		return false, errors.Wrap(err, "model: failed to check if schedules exists")
 	}
 
 	return count > 0, nil
 }
 
-// OncallSchedules retrieves all the records using an executor.
-func OncallSchedules(mods ...qm.QueryMod) oncallScheduleQuery {
-	mods = append(mods, qm.From("\"oncall_schedule\""), qmhelper.WhereIsNull("\"oncall_schedule\".\"deleted_at\""))
-	return oncallScheduleQuery{NewQuery(mods...)}
+// Schedules retrieves all the records using an executor.
+func Schedules(mods ...qm.QueryMod) scheduleQuery {
+	mods = append(mods, qm.From("\"schedules\""), qmhelper.WhereIsNull("\"schedules\".\"deleted_at\""))
+	return scheduleQuery{NewQuery(mods...)}
 }
 
-// FindOncallSchedule retrieves a single record by ID with an executor.
+// FindSchedule retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindOncallSchedule(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*OncallSchedule, error) {
-	oncallScheduleObj := &OncallSchedule{}
+func FindSchedule(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*Schedule, error) {
+	scheduleObj := &Schedule{}
 
 	sel := "*"
 	if len(selectCols) > 0 {
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"oncall_schedule\" where \"id\"=$1 and \"deleted_at\" is null", sel,
+		"select %s from \"schedules\" where \"id\"=$1 and \"deleted_at\" is null", sel,
 	)
 
 	q := queries.Raw(query, iD)
 
-	err := q.Bind(ctx, exec, oncallScheduleObj)
+	err := q.Bind(ctx, exec, scheduleObj)
 	if err != nil {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "model: unable to select from oncall_schedule")
+		return nil, errors.Wrap(err, "model: unable to select from schedules")
 	}
 
-	return oncallScheduleObj, nil
+	return scheduleObj, nil
 }
 
 // Insert a single record using an executor.
 // See boil.Columns.InsertColumnSet documentation to understand column list inference for inserts.
-func (o *OncallSchedule) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
+func (o *Schedule) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if o == nil {
-		return errors.New("model: no oncall_schedule provided for insertion")
+		return errors.New("model: no schedules provided for insertion")
 	}
 
 	var err error
@@ -368,33 +395,33 @@ func (o *OncallSchedule) Insert(ctx context.Context, exec boil.ContextExecutor, 
 		}
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(oncallScheduleColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(scheduleColumnsWithDefault, o)
 
 	key := makeCacheKey(columns, nzDefaults)
-	oncallScheduleInsertCacheMut.RLock()
-	cache, cached := oncallScheduleInsertCache[key]
-	oncallScheduleInsertCacheMut.RUnlock()
+	scheduleInsertCacheMut.RLock()
+	cache, cached := scheduleInsertCache[key]
+	scheduleInsertCacheMut.RUnlock()
 
 	if !cached {
 		wl, returnColumns := columns.InsertColumnSet(
-			oncallScheduleAllColumns,
-			oncallScheduleColumnsWithDefault,
-			oncallScheduleColumnsWithoutDefault,
+			scheduleAllColumns,
+			scheduleColumnsWithDefault,
+			scheduleColumnsWithoutDefault,
 			nzDefaults,
 		)
 
-		cache.valueMapping, err = queries.BindMapping(oncallScheduleType, oncallScheduleMapping, wl)
+		cache.valueMapping, err = queries.BindMapping(scheduleType, scheduleMapping, wl)
 		if err != nil {
 			return err
 		}
-		cache.retMapping, err = queries.BindMapping(oncallScheduleType, oncallScheduleMapping, returnColumns)
+		cache.retMapping, err = queries.BindMapping(scheduleType, scheduleMapping, returnColumns)
 		if err != nil {
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO \"oncall_schedule\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"schedules\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO \"oncall_schedule\" %sDEFAULT VALUES%s"
+			cache.query = "INSERT INTO \"schedules\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
@@ -422,22 +449,22 @@ func (o *OncallSchedule) Insert(ctx context.Context, exec boil.ContextExecutor, 
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "model: unable to insert into oncall_schedule")
+		return errors.Wrap(err, "model: unable to insert into schedules")
 	}
 
 	if !cached {
-		oncallScheduleInsertCacheMut.Lock()
-		oncallScheduleInsertCache[key] = cache
-		oncallScheduleInsertCacheMut.Unlock()
+		scheduleInsertCacheMut.Lock()
+		scheduleInsertCache[key] = cache
+		scheduleInsertCacheMut.Unlock()
 	}
 
 	return nil
 }
 
-// Update uses an executor to update the OncallSchedule.
+// Update uses an executor to update the Schedule.
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
-func (o *OncallSchedule) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+func (o *Schedule) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
@@ -446,28 +473,28 @@ func (o *OncallSchedule) Update(ctx context.Context, exec boil.ContextExecutor, 
 
 	var err error
 	key := makeCacheKey(columns, nil)
-	oncallScheduleUpdateCacheMut.RLock()
-	cache, cached := oncallScheduleUpdateCache[key]
-	oncallScheduleUpdateCacheMut.RUnlock()
+	scheduleUpdateCacheMut.RLock()
+	cache, cached := scheduleUpdateCache[key]
+	scheduleUpdateCacheMut.RUnlock()
 
 	if !cached {
 		wl := columns.UpdateColumnSet(
-			oncallScheduleAllColumns,
-			oncallSchedulePrimaryKeyColumns,
+			scheduleAllColumns,
+			schedulePrimaryKeyColumns,
 		)
 
 		if !columns.IsWhitelist() {
 			wl = strmangle.SetComplement(wl, []string{"created_at"})
 		}
 		if len(wl) == 0 {
-			return 0, errors.New("model: unable to update oncall_schedule, could not build whitelist")
+			return 0, errors.New("model: unable to update schedules, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE \"oncall_schedule\" SET %s WHERE %s",
+		cache.query = fmt.Sprintf("UPDATE \"schedules\" SET %s WHERE %s",
 			strmangle.SetParamNames("\"", "\"", 1, wl),
-			strmangle.WhereClause("\"", "\"", len(wl)+1, oncallSchedulePrimaryKeyColumns),
+			strmangle.WhereClause("\"", "\"", len(wl)+1, schedulePrimaryKeyColumns),
 		)
-		cache.valueMapping, err = queries.BindMapping(oncallScheduleType, oncallScheduleMapping, append(wl, oncallSchedulePrimaryKeyColumns...))
+		cache.valueMapping, err = queries.BindMapping(scheduleType, scheduleMapping, append(wl, schedulePrimaryKeyColumns...))
 		if err != nil {
 			return 0, err
 		}
@@ -483,42 +510,42 @@ func (o *OncallSchedule) Update(ctx context.Context, exec boil.ContextExecutor, 
 	var result sql.Result
 	result, err = exec.ExecContext(ctx, cache.query, values...)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to update oncall_schedule row")
+		return 0, errors.Wrap(err, "model: unable to update schedules row")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "model: failed to get rows affected by update for oncall_schedule")
+		return 0, errors.Wrap(err, "model: failed to get rows affected by update for schedules")
 	}
 
 	if !cached {
-		oncallScheduleUpdateCacheMut.Lock()
-		oncallScheduleUpdateCache[key] = cache
-		oncallScheduleUpdateCacheMut.Unlock()
+		scheduleUpdateCacheMut.Lock()
+		scheduleUpdateCache[key] = cache
+		scheduleUpdateCacheMut.Unlock()
 	}
 
 	return rowsAff, nil
 }
 
 // UpdateAll updates all rows with the specified column values.
-func (q oncallScheduleQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (q scheduleQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	queries.SetUpdate(q.Query, cols)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to update all for oncall_schedule")
+		return 0, errors.Wrap(err, "model: unable to update all for schedules")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to retrieve rows affected for oncall_schedule")
+		return 0, errors.Wrap(err, "model: unable to retrieve rows affected for schedules")
 	}
 
 	return rowsAff, nil
 }
 
 // UpdateAll updates all rows with the specified column values, using an executor.
-func (o OncallScheduleSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (o ScheduleSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	ln := int64(len(o))
 	if ln == 0 {
 		return 0, nil
@@ -540,13 +567,13 @@ func (o OncallScheduleSlice) UpdateAll(ctx context.Context, exec boil.ContextExe
 
 	// Append all of the primary key values for each column
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), oncallSchedulePrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), schedulePrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE \"oncall_schedule\" SET %s WHERE %s",
+	sql := fmt.Sprintf("UPDATE \"schedules\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, oncallSchedulePrimaryKeyColumns, len(o)))
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, schedulePrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -555,21 +582,21 @@ func (o OncallScheduleSlice) UpdateAll(ctx context.Context, exec boil.ContextExe
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to update all in oncallSchedule slice")
+		return 0, errors.Wrap(err, "model: unable to update all in schedule slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to retrieve rows affected all in update all oncallSchedule")
+		return 0, errors.Wrap(err, "model: unable to retrieve rows affected all in update all schedule")
 	}
 	return rowsAff, nil
 }
 
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *OncallSchedule) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
+func (o *Schedule) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
-		return errors.New("model: no oncall_schedule provided for upsert")
+		return errors.New("model: no schedules provided for upsert")
 	}
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
@@ -580,7 +607,7 @@ func (o *OncallSchedule) Upsert(ctx context.Context, exec boil.ContextExecutor, 
 		o.UpdatedAt = currTime
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(oncallScheduleColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(scheduleColumnsWithDefault, o)
 
 	// Build cache key in-line uglily - mysql vs psql problems
 	buf := strmangle.GetBuffer()
@@ -610,41 +637,41 @@ func (o *OncallSchedule) Upsert(ctx context.Context, exec boil.ContextExecutor, 
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
-	oncallScheduleUpsertCacheMut.RLock()
-	cache, cached := oncallScheduleUpsertCache[key]
-	oncallScheduleUpsertCacheMut.RUnlock()
+	scheduleUpsertCacheMut.RLock()
+	cache, cached := scheduleUpsertCache[key]
+	scheduleUpsertCacheMut.RUnlock()
 
 	var err error
 
 	if !cached {
 		insert, ret := insertColumns.InsertColumnSet(
-			oncallScheduleAllColumns,
-			oncallScheduleColumnsWithDefault,
-			oncallScheduleColumnsWithoutDefault,
+			scheduleAllColumns,
+			scheduleColumnsWithDefault,
+			scheduleColumnsWithoutDefault,
 			nzDefaults,
 		)
 		update := updateColumns.UpdateColumnSet(
-			oncallScheduleAllColumns,
-			oncallSchedulePrimaryKeyColumns,
+			scheduleAllColumns,
+			schedulePrimaryKeyColumns,
 		)
 
 		if updateOnConflict && len(update) == 0 {
-			return errors.New("model: unable to upsert oncall_schedule, could not build update column list")
+			return errors.New("model: unable to upsert schedules, could not build update column list")
 		}
 
 		conflict := conflictColumns
 		if len(conflict) == 0 {
-			conflict = make([]string, len(oncallSchedulePrimaryKeyColumns))
-			copy(conflict, oncallSchedulePrimaryKeyColumns)
+			conflict = make([]string, len(schedulePrimaryKeyColumns))
+			copy(conflict, schedulePrimaryKeyColumns)
 		}
-		cache.query = buildUpsertQueryPostgres(dialect, "\"oncall_schedule\"", updateOnConflict, ret, update, conflict, insert)
+		cache.query = buildUpsertQueryPostgres(dialect, "\"schedules\"", updateOnConflict, ret, update, conflict, insert)
 
-		cache.valueMapping, err = queries.BindMapping(oncallScheduleType, oncallScheduleMapping, insert)
+		cache.valueMapping, err = queries.BindMapping(scheduleType, scheduleMapping, insert)
 		if err != nil {
 			return err
 		}
 		if len(ret) != 0 {
-			cache.retMapping, err = queries.BindMapping(oncallScheduleType, oncallScheduleMapping, ret)
+			cache.retMapping, err = queries.BindMapping(scheduleType, scheduleMapping, ret)
 			if err != nil {
 				return err
 			}
@@ -672,23 +699,23 @@ func (o *OncallSchedule) Upsert(ctx context.Context, exec boil.ContextExecutor, 
 		_, err = exec.ExecContext(ctx, cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "model: unable to upsert oncall_schedule")
+		return errors.Wrap(err, "model: unable to upsert schedules")
 	}
 
 	if !cached {
-		oncallScheduleUpsertCacheMut.Lock()
-		oncallScheduleUpsertCache[key] = cache
-		oncallScheduleUpsertCacheMut.Unlock()
+		scheduleUpsertCacheMut.Lock()
+		scheduleUpsertCache[key] = cache
+		scheduleUpsertCacheMut.Unlock()
 	}
 
 	return nil
 }
 
-// Delete deletes a single OncallSchedule record with an executor.
+// Delete deletes a single Schedule record with an executor.
 // Delete will match against the primary key column to find the record to delete.
-func (o *OncallSchedule) Delete(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
+func (o *Schedule) Delete(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
 	if o == nil {
-		return 0, errors.New("model: no OncallSchedule provided for delete")
+		return 0, errors.New("model: no Schedule provided for delete")
 	}
 
 	var (
@@ -696,16 +723,16 @@ func (o *OncallSchedule) Delete(ctx context.Context, exec boil.ContextExecutor, 
 		args []interface{}
 	)
 	if hardDelete {
-		args = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), oncallSchedulePrimaryKeyMapping)
-		sql = "DELETE FROM \"oncall_schedule\" WHERE \"id\"=$1"
+		args = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), schedulePrimaryKeyMapping)
+		sql = "DELETE FROM \"schedules\" WHERE \"id\"=$1"
 	} else {
 		currTime := time.Now().In(boil.GetLocation())
 		o.DeletedAt = null.TimeFrom(currTime)
 		wl := []string{"deleted_at"}
-		sql = fmt.Sprintf("UPDATE \"oncall_schedule\" SET %s WHERE \"id\"=$2",
+		sql = fmt.Sprintf("UPDATE \"schedules\" SET %s WHERE \"id\"=$2",
 			strmangle.SetParamNames("\"", "\"", 1, wl),
 		)
-		valueMapping, err := queries.BindMapping(oncallScheduleType, oncallScheduleMapping, append(wl, oncallSchedulePrimaryKeyColumns...))
+		valueMapping, err := queries.BindMapping(scheduleType, scheduleMapping, append(wl, schedulePrimaryKeyColumns...))
 		if err != nil {
 			return 0, err
 		}
@@ -719,21 +746,21 @@ func (o *OncallSchedule) Delete(ctx context.Context, exec boil.ContextExecutor, 
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to delete from oncall_schedule")
+		return 0, errors.Wrap(err, "model: unable to delete from schedules")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "model: failed to get rows affected by delete for oncall_schedule")
+		return 0, errors.Wrap(err, "model: failed to get rows affected by delete for schedules")
 	}
 
 	return rowsAff, nil
 }
 
 // DeleteAll deletes all matching rows.
-func (q oncallScheduleQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
+func (q scheduleQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
 	if q.Query == nil {
-		return 0, errors.New("model: no oncallScheduleQuery provided for delete all")
+		return 0, errors.New("model: no scheduleQuery provided for delete all")
 	}
 
 	if hardDelete {
@@ -745,19 +772,19 @@ func (q oncallScheduleQuery) DeleteAll(ctx context.Context, exec boil.ContextExe
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to delete all from oncall_schedule")
+		return 0, errors.Wrap(err, "model: unable to delete all from schedules")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "model: failed to get rows affected by deleteall for oncall_schedule")
+		return 0, errors.Wrap(err, "model: failed to get rows affected by deleteall for schedules")
 	}
 
 	return rowsAff, nil
 }
 
 // DeleteAll deletes all rows in the slice, using an executor.
-func (o OncallScheduleSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
+func (o ScheduleSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
@@ -768,21 +795,21 @@ func (o OncallScheduleSlice) DeleteAll(ctx context.Context, exec boil.ContextExe
 	)
 	if hardDelete {
 		for _, obj := range o {
-			pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), oncallSchedulePrimaryKeyMapping)
+			pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), schedulePrimaryKeyMapping)
 			args = append(args, pkeyArgs...)
 		}
-		sql = "DELETE FROM \"oncall_schedule\" WHERE " +
-			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, oncallSchedulePrimaryKeyColumns, len(o))
+		sql = "DELETE FROM \"schedules\" WHERE " +
+			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, schedulePrimaryKeyColumns, len(o))
 	} else {
 		currTime := time.Now().In(boil.GetLocation())
 		for _, obj := range o {
-			pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), oncallSchedulePrimaryKeyMapping)
+			pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), schedulePrimaryKeyMapping)
 			args = append(args, pkeyArgs...)
 			obj.DeletedAt = null.TimeFrom(currTime)
 		}
 		wl := []string{"deleted_at"}
-		sql = fmt.Sprintf("UPDATE \"oncall_schedule\" SET %s WHERE "+
-			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 2, oncallSchedulePrimaryKeyColumns, len(o)),
+		sql = fmt.Sprintf("UPDATE \"schedules\" SET %s WHERE "+
+			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 2, schedulePrimaryKeyColumns, len(o)),
 			strmangle.SetParamNames("\"", "\"", 1, wl),
 		)
 		args = append([]interface{}{currTime}, args...)
@@ -795,12 +822,12 @@ func (o OncallScheduleSlice) DeleteAll(ctx context.Context, exec boil.ContextExe
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to delete all from oncallSchedule slice")
+		return 0, errors.Wrap(err, "model: unable to delete all from schedule slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "model: failed to get rows affected by deleteall for oncall_schedule")
+		return 0, errors.Wrap(err, "model: failed to get rows affected by deleteall for schedules")
 	}
 
 	return rowsAff, nil
@@ -808,8 +835,8 @@ func (o OncallScheduleSlice) DeleteAll(ctx context.Context, exec boil.ContextExe
 
 // Reload refetches the object from the database
 // using the primary keys with an executor.
-func (o *OncallSchedule) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindOncallSchedule(ctx, exec, o.ID)
+func (o *Schedule) Reload(ctx context.Context, exec boil.ContextExecutor) error {
+	ret, err := FindSchedule(ctx, exec, o.ID)
 	if err != nil {
 		return err
 	}
@@ -820,27 +847,27 @@ func (o *OncallSchedule) Reload(ctx context.Context, exec boil.ContextExecutor) 
 
 // ReloadAll refetches every row with matching primary key column values
 // and overwrites the original object slice with the newly updated slice.
-func (o *OncallScheduleSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
+func (o *ScheduleSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
 	if o == nil || len(*o) == 0 {
 		return nil
 	}
 
-	slice := OncallScheduleSlice{}
+	slice := ScheduleSlice{}
 	var args []interface{}
 	for _, obj := range *o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), oncallSchedulePrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), schedulePrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT \"oncall_schedule\".* FROM \"oncall_schedule\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, oncallSchedulePrimaryKeyColumns, len(*o)) +
+	sql := "SELECT \"schedules\".* FROM \"schedules\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, schedulePrimaryKeyColumns, len(*o)) +
 		"and \"deleted_at\" is null"
 
 	q := queries.Raw(sql, args...)
 
 	err := q.Bind(ctx, exec, &slice)
 	if err != nil {
-		return errors.Wrap(err, "model: unable to reload all in OncallScheduleSlice")
+		return errors.Wrap(err, "model: unable to reload all in ScheduleSlice")
 	}
 
 	*o = slice
@@ -848,10 +875,10 @@ func (o *OncallScheduleSlice) ReloadAll(ctx context.Context, exec boil.ContextEx
 	return nil
 }
 
-// OncallScheduleExists checks if the OncallSchedule row exists.
-func OncallScheduleExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
+// ScheduleExists checks if the Schedule row exists.
+func ScheduleExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"oncall_schedule\" where \"id\"=$1 and \"deleted_at\" is null limit 1)"
+	sql := "select exists(select 1 from \"schedules\" where \"id\"=$1 and \"deleted_at\" is null limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -862,7 +889,7 @@ func OncallScheduleExists(ctx context.Context, exec boil.ContextExecutor, iD str
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "model: unable to check if oncall_schedule exists")
+		return false, errors.Wrap(err, "model: unable to check if schedules exists")
 	}
 
 	return exists, nil

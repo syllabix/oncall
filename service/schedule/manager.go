@@ -38,8 +38,8 @@ func (m *manager) Create(sched oncall.Schedule) (oncall.Schedule, error) {
 	return asSchedule(result), nil
 }
 
-func asModel(schedule oncall.Schedule) model.OncallSchedule {
-	return model.OncallSchedule{
+func asModel(schedule oncall.Schedule) model.Schedule {
+	return model.Schedule{
 		Name:           schedule.Name,
 		TeamSlackID:    schedule.TeamID,
 		Interval:       string(schedule.Interval),
@@ -49,7 +49,7 @@ func asModel(schedule oncall.Schedule) model.OncallSchedule {
 	}
 }
 
-func asSchedule(model model.OncallSchedule) oncall.Schedule {
+func asSchedule(model model.Schedule) oncall.Schedule {
 	return oncall.Schedule{
 		ID:        model.ID,
 		Name:      model.Name,

@@ -4,15 +4,15 @@
 package model
 
 var TableNames = struct {
-	OncallSchedule string
-	Shift          string
-	TeamMembers    string
-	Teams          string
-	Users          string
+	Schedules   string
+	Shifts      string
+	TeamMembers string
+	Teams       string
+	Users       string
 }{
-	OncallSchedule: "oncall_schedule",
-	Shift:          "shift",
-	TeamMembers:    "team_members",
-	Teams:          "teams",
-	Users:          "users",
+	Schedules:   "schedules",
+	Shifts:      "shifts",
+	TeamMembers: "team_members",
+	Teams:       "teams",
+	Users:       "users",
 }

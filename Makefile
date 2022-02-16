@@ -32,7 +32,7 @@ tidy:
 
 ## Start development environment (generates code, spins up databases, etc)
 dev.start: 
-	export LOCAL_MOUNT= $(shell pwd)
+	export LOCAL_MOUNT=$(shell pwd)
 	mkdir -p .cache/pkg	
 	docker compose up -d
 

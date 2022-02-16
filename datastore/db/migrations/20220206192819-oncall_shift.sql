@@ -2,9 +2,9 @@
 -- +migrate Up
 CREATE TYPE shift_interval AS ENUM ('daily', 'weekly', 'bi-weekly', 'monthly');
 
-CREATE TABLE IF NOT EXISTS oncall_schedule (
+CREATE TABLE IF NOT EXISTS schedules (
     id uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
-    slack_channel_id text NOT NULL CONSTRAINT oncall_schedule_slack_id_uq UNIQUE,
+    slack_channel_id text NOT NULL CONSTRAINT schedules_slack_id_uq UNIQUE,
     team_slack_id text NOT NULL,     
     name text NOT NULL,
     interval shift_interval NOT NULL,
@@ -13,42 +13,41 @@ CREATE TABLE IF NOT EXISTS oncall_schedule (
     end_time time with time zone NOT NULL,
     active_shift uuid NULL,
     override_shift uuid NULL,
+    shifts text[] NOT NULL DEFAULT array[]::text[],
     created_at timestamp with time zone NOT NULL DEFAULT ('now'::text)::timestamp with time zone,
     updated_at timestamp with time zone NOT NULL DEFAULT ('now'::text)::timestamp with time zone,
     deleted_at timestamp with time zone NULL
 );
 
-CREATE INDEX oncall_schedule_created_at_idx ON oncall_schedule (created_at DESC);
-CREATE INDEX oncall_schedule_deleted_at_idx ON oncall_schedule (deleted_at DESC);
-CREATE INDEX oncall_schedule_active_shift_idx ON oncall_schedule (active_shift);
-CREATE INDEX oncall_schedule_override_shift_idx ON oncall_schedule (override_shift);
-CREATE INDEX oncall_schedule_team_slack_id_idx ON oncall_schedule (team_slack_id);
-CREATE INDEX oncall_schedule_slack_channel_id_idx ON oncall_schedule (slack_channel_id);
+CREATE INDEX schedules_created_at_idx ON schedules (created_at DESC);
+CREATE INDEX schedules_deleted_at_idx ON schedules (deleted_at DESC);
+CREATE INDEX schedules_active_shift_idx ON schedules (active_shift);
+CREATE INDEX schedules_override_shift_idx ON schedules (override_shift);
+CREATE INDEX schedules_team_slack_id_idx ON schedules (team_slack_id);
+CREATE INDEX schedules_slack_channel_id_idx ON schedules (slack_channel_id);
 
-CREATE TABLE IF NOT EXISTS shift (
+CREATE TABLE IF NOT EXISTS shifts (
     id uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id uuid NOT NULL,     
-    oncall_schedule_id uuid NOT NULL,
-    next_shift uuid NOT NULL,
-    prev_shift uuid NOT NULL,
+    schedule_id uuid NOT NULL,
     created_at timestamp with time zone NOT NULL DEFAULT ('now'::text)::timestamp with time zone,
     updated_at timestamp with time zone NOT NULL DEFAULT ('now'::text)::timestamp with time zone,
     deleted_at timestamp with time zone NULL
 );
 
-CREATE INDEX shift_user_id_idx ON shift (user_id);
-CREATE INDEX shift_oncall_schedule_id ON shift (oncall_schedule_id);
+CREATE INDEX shift_user_id_idx ON shifts (user_id);
+CREATE INDEX shift_oncall_schedule_id ON shifts (schedule_id);
 
 -- +migrate Down
-DROP INDEX IF EXISTS oncall_schedule_created_at_idx;
-DROP INDEX IF EXISTS oncall_schedule_deleted_at_idx;
-DROP INDEX IF EXISTS oncall_schedule_active_shift_idx;
-DROP INDEX IF EXISTS oncall_schedule_override_shift_idx;
-DROP INDEX IF EXISTS oncall_schedule_team_id_idx;
-DROP TABLE IF EXISTS oncall_schedule;
+DROP INDEX IF EXISTS schedule_created_at_idx;
+DROP INDEX IF EXISTS schedule_deleted_at_idx;
+DROP INDEX IF EXISTS schedule_active_shift_idx;
+DROP INDEX IF EXISTS schedule_override_shift_idx;
+DROP INDEX IF EXISTS schedule_team_id_idx;
+DROP TABLE IF EXISTS schedules;
 
-DROP INDEX IF EXISTS shift_user_id_idx;
-DROP INDEX IF EXISTS shift_oncall_schedule_id;
-DROP TABLE IF EXISTS shift;
+DROP INDEX IF EXISTS shifts_user_id_idx;
+DROP INDEX IF EXISTS shifts_schedule_id;
+DROP TABLE IF EXISTS shifts;
 
 DROP TYPE IF EXISTS shift_interval;

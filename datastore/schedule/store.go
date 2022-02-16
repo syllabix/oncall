@@ -22,7 +22,7 @@ func NewStore(db db.Database) (Store, error) {
 	}
 
 	listByChannel, err := db.Preparex(`
-		SELECT * FROM oncall_schedule WHERE slack_channel_id = $1
+		SELECT * FROM schedules WHERE slack_channel_id = $1
 	`)
 	if err != nil {
 		return Store{}, fmt.Errorf("failed to setup schedule data store: %w", err)
@@ -31,33 +31,33 @@ func NewStore(db db.Database) (Store, error) {
 	return Store{db, create, listByChannel}, nil
 }
 
-func (s *Store) Create(schedule model.OncallSchedule) (model.OncallSchedule, error) {
+func (s *Store) Create(schedule model.Schedule) (model.Schedule, error) {
 	err := s.create.Get(&schedule, &schedule)
 	if err != nil {
-		return failure[model.OncallSchedule](
+		return failure[model.Schedule](
 			fmt.Errorf("could not create schedule: %w", err),
 		)
 	}
 	return schedule, nil
 }
 
-func (s *Store) GetForChannel(id string) (model.OncallScheduleSlice, error) {
-	var schedules model.OncallScheduleSlice
+func (s *Store) GetForChannel(id string) (model.ScheduleSlice, error) {
+	var schedules model.ScheduleSlice
 	err := s.listByChannel.Select(&schedules, id)
 	if err != nil {
-		return failure[model.OncallScheduleSlice](
+		return failure[model.ScheduleSlice](
 			fmt.Errorf("could not create schedule: %w", err),
 		)
 	}
 	return schedules, nil
 }
 
-func (s *Store) AddToSchedule(channelID string, users model.UserSlice) (model.OncallSchedule, error) {
+func (s *Store) AddToSchedule(channelID string, users []model.User) (Overview, error) {
 
 	// failure helpers
 	var (
-		failure  = failure[model.OncallSchedule]
-		rollback = rollback[model.OncallSchedule]
+		failure  = failure[Overview]
+		rollback = rollback[Overview]
 	)
 
 	tx, err := s.db.BeginTxx(context.TODO(), nil)
@@ -65,8 +65,19 @@ func (s *Store) AddToSchedule(channelID string, users model.UserSlice) (model.On
 		return failure(err)
 	}
 
-	var schedule model.OncallSchedule
-	err = tx.Get(&schedule, "SELECT * WHERE slack_channel_id = $1", channelID)
+	var schedule model.Schedule
+	err = tx.Get(&schedule, "SELECT * FROM schedules WHERE slack_channel_id = $1", channelID)
+	if err != nil {
+		return rollback(tx, err)
+	}
+
+	var shifts model.ShiftSlice
+	err = tx.Select(&shifts, "SELECT * FROM shifts WHERE schedule_id = $1", schedule.ID)
+	if err != nil {
+		return rollback(tx, err)
+	}
+
+	_, err = tx.NamedExec(upsertUser, users)
 	if err != nil {
 		return rollback(tx, err)
 	}
@@ -75,4 +86,6 @@ func (s *Store) AddToSchedule(channelID string, users model.UserSlice) (model.On
 	if err != nil {
 		return failure(err)
 	}
+
+	return Overview{}, nil
 }

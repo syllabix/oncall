@@ -6,7 +6,7 @@ package model
 import "testing"
 
 func TestUpsert(t *testing.T) {
-	t.Run("OncallSchedules", testOncallSchedulesUpsert)
+	t.Run("Schedules", testSchedulesUpsert)
 
 	t.Run("Shifts", testShiftsUpsert)
 

@@ -21,24 +21,24 @@ var (
 	_ = queries.Equal
 )
 
-func testOncallSchedules(t *testing.T) {
+func testShifts(t *testing.T) {
 	t.Parallel()
 
-	query := OncallSchedules()
+	query := Shifts()
 
 	if query.Query == nil {
 		t.Error("expected a query, got nothing")
 	}
 }
 
-func testOncallSchedulesSoftDelete(t *testing.T) {
+func testShiftsSoftDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func testOncallSchedulesSoftDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,14 +64,14 @@ func testOncallSchedulesSoftDelete(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesQuerySoftDeleteAll(t *testing.T) {
+func testShiftsQuerySoftDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -81,13 +81,13 @@ func testOncallSchedulesQuerySoftDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := OncallSchedules().DeleteAll(ctx, tx, false); err != nil {
+	if rowsAff, err := Shifts().DeleteAll(ctx, tx, false); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,14 +97,14 @@ func testOncallSchedulesQuerySoftDeleteAll(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesSliceSoftDeleteAll(t *testing.T) {
+func testShiftsSliceSoftDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -114,7 +114,7 @@ func testOncallSchedulesSliceSoftDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := OncallScheduleSlice{o}
+	slice := ShiftSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx, false); err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func testOncallSchedulesSliceSoftDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,14 +132,14 @@ func testOncallSchedulesSliceSoftDeleteAll(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesDelete(t *testing.T) {
+func testShiftsDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -155,7 +155,7 @@ func testOncallSchedulesDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -165,14 +165,14 @@ func testOncallSchedulesDelete(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesQueryDeleteAll(t *testing.T) {
+func testShiftsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -182,13 +182,13 @@ func testOncallSchedulesQueryDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := OncallSchedules().DeleteAll(ctx, tx, true); err != nil {
+	if rowsAff, err := Shifts().DeleteAll(ctx, tx, true); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -198,14 +198,14 @@ func testOncallSchedulesQueryDeleteAll(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesSliceDeleteAll(t *testing.T) {
+func testShiftsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -215,7 +215,7 @@ func testOncallSchedulesSliceDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := OncallScheduleSlice{o}
+	slice := ShiftSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx, true); err != nil {
 		t.Error(err)
@@ -223,7 +223,7 @@ func testOncallSchedulesSliceDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -233,14 +233,14 @@ func testOncallSchedulesSliceDeleteAll(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesExists(t *testing.T) {
+func testShiftsExists(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -250,23 +250,23 @@ func testOncallSchedulesExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := OncallScheduleExists(ctx, tx, o.ID)
+	e, err := ShiftExists(ctx, tx, o.ID)
 	if err != nil {
-		t.Errorf("Unable to check if OncallSchedule exists: %s", err)
+		t.Errorf("Unable to check if Shift exists: %s", err)
 	}
 	if !e {
-		t.Errorf("Expected OncallScheduleExists to return true, but got false.")
+		t.Errorf("Expected ShiftExists to return true, but got false.")
 	}
 }
 
-func testOncallSchedulesFind(t *testing.T) {
+func testShiftsFind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -276,24 +276,24 @@ func testOncallSchedulesFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	oncallScheduleFound, err := FindOncallSchedule(ctx, tx, o.ID)
+	shiftFound, err := FindShift(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if oncallScheduleFound == nil {
+	if shiftFound == nil {
 		t.Error("want a record, got nil")
 	}
 }
 
-func testOncallSchedulesBind(t *testing.T) {
+func testShiftsBind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -303,19 +303,19 @@ func testOncallSchedulesBind(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = OncallSchedules().Bind(ctx, tx, o); err != nil {
+	if err = Shifts().Bind(ctx, tx, o); err != nil {
 		t.Error(err)
 	}
 }
 
-func testOncallSchedulesOne(t *testing.T) {
+func testShiftsOne(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -325,38 +325,38 @@ func testOncallSchedulesOne(t *testing.T) {
 		t.Error(err)
 	}
 
-	if x, err := OncallSchedules().One(ctx, tx); err != nil {
+	if x, err := Shifts().One(ctx, tx); err != nil {
 		t.Error(err)
 	} else if x == nil {
 		t.Error("expected to get a non nil record")
 	}
 }
 
-func testOncallSchedulesAll(t *testing.T) {
+func testShiftsAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	oncallScheduleOne := &OncallSchedule{}
-	oncallScheduleTwo := &OncallSchedule{}
-	if err = randomize.Struct(seed, oncallScheduleOne, oncallScheduleDBTypes, false, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	shiftOne := &Shift{}
+	shiftTwo := &Shift{}
+	if err = randomize.Struct(seed, shiftOne, shiftDBTypes, false, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
-	if err = randomize.Struct(seed, oncallScheduleTwo, oncallScheduleDBTypes, false, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	if err = randomize.Struct(seed, shiftTwo, shiftDBTypes, false, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = oncallScheduleOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = shiftOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = oncallScheduleTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = shiftTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	slice, err := OncallSchedules().All(ctx, tx)
+	slice, err := Shifts().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -366,31 +366,31 @@ func testOncallSchedulesAll(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesCount(t *testing.T) {
+func testShiftsCount(t *testing.T) {
 	t.Parallel()
 
 	var err error
 	seed := randomize.NewSeed()
-	oncallScheduleOne := &OncallSchedule{}
-	oncallScheduleTwo := &OncallSchedule{}
-	if err = randomize.Struct(seed, oncallScheduleOne, oncallScheduleDBTypes, false, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	shiftOne := &Shift{}
+	shiftTwo := &Shift{}
+	if err = randomize.Struct(seed, shiftOne, shiftDBTypes, false, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
-	if err = randomize.Struct(seed, oncallScheduleTwo, oncallScheduleDBTypes, false, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	if err = randomize.Struct(seed, shiftTwo, shiftDBTypes, false, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = oncallScheduleOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = shiftOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = oncallScheduleTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = shiftTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -400,14 +400,14 @@ func testOncallSchedulesCount(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesInsert(t *testing.T) {
+func testShiftsInsert(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -417,7 +417,7 @@ func testOncallSchedulesInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -427,24 +427,24 @@ func testOncallSchedulesInsert(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesInsertWhitelist(t *testing.T) {
+func testShiftsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Insert(ctx, tx, boil.Whitelist(oncallScheduleColumnsWithoutDefault...)); err != nil {
+	if err = o.Insert(ctx, tx, boil.Whitelist(shiftColumnsWithoutDefault...)); err != nil {
 		t.Error(err)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -454,14 +454,14 @@ func testOncallSchedulesInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesReload(t *testing.T) {
+func testShiftsReload(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -476,14 +476,14 @@ func testOncallSchedulesReload(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesReloadAll(t *testing.T) {
+func testShiftsReloadAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -493,21 +493,21 @@ func testOncallSchedulesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := OncallScheduleSlice{o}
+	slice := ShiftSlice{o}
 
 	if err = slice.ReloadAll(ctx, tx); err != nil {
 		t.Error(err)
 	}
 }
 
-func testOncallSchedulesSelect(t *testing.T) {
+func testShiftsSelect(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -517,7 +517,7 @@ func testOncallSchedulesSelect(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice, err := OncallSchedules().All(ctx, tx)
+	slice, err := Shifts().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -528,25 +528,25 @@ func testOncallSchedulesSelect(t *testing.T) {
 }
 
 var (
-	oncallScheduleDBTypes = map[string]string{`ID`: `uuid`, `TeamSlackID`: `text`, `Name`: `text`, `Interval`: `enum.shift_interval('daily','weekly','bi-weekly','monthly')`, `IsEnabled`: `boolean`, `StartTime`: `time with time zone`, `EndTime`: `time with time zone`, `ActiveShift`: `uuid`, `OverrideShift`: `uuid`, `SlackChannelID`: `text`, `CreatedAt`: `timestamp with time zone`, `UpdatedAt`: `timestamp with time zone`, `DeletedAt`: `timestamp with time zone`}
-	_                     = bytes.MinRead
+	shiftDBTypes = map[string]string{`ID`: `uuid`, `UserID`: `uuid`, `ScheduleID`: `uuid`, `CreatedAt`: `timestamp with time zone`, `UpdatedAt`: `timestamp with time zone`, `DeletedAt`: `timestamp with time zone`}
+	_            = bytes.MinRead
 )
 
-func testOncallSchedulesUpdate(t *testing.T) {
+func testShiftsUpdate(t *testing.T) {
 	t.Parallel()
 
-	if 0 == len(oncallSchedulePrimaryKeyColumns) {
+	if 0 == len(shiftPrimaryKeyColumns) {
 		t.Skip("Skipping table with no primary key columns")
 	}
-	if len(oncallScheduleAllColumns) == len(oncallSchedulePrimaryKeyColumns) {
+	if len(shiftAllColumns) == len(shiftPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -556,7 +556,7 @@ func testOncallSchedulesUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -565,8 +565,8 @@ func testOncallSchedulesUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallSchedulePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	if rowsAff, err := o.Update(ctx, tx, boil.Infer()); err != nil {
@@ -576,18 +576,18 @@ func testOncallSchedulesUpdate(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesSliceUpdateAll(t *testing.T) {
+func testShiftsSliceUpdateAll(t *testing.T) {
 	t.Parallel()
 
-	if len(oncallScheduleAllColumns) == len(oncallSchedulePrimaryKeyColumns) {
+	if len(shiftAllColumns) == len(shiftPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &OncallSchedule{}
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallScheduleColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := &Shift{}
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -597,7 +597,7 @@ func testOncallSchedulesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -606,18 +606,18 @@ func testOncallSchedulesSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, oncallScheduleDBTypes, true, oncallSchedulePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	if err = randomize.Struct(seed, o, shiftDBTypes, true, shiftPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
-	if strmangle.StringSliceMatch(oncallScheduleAllColumns, oncallSchedulePrimaryKeyColumns) {
-		fields = oncallScheduleAllColumns
+	if strmangle.StringSliceMatch(shiftAllColumns, shiftPrimaryKeyColumns) {
+		fields = shiftAllColumns
 	} else {
 		fields = strmangle.SetComplement(
-			oncallScheduleAllColumns,
-			oncallSchedulePrimaryKeyColumns,
+			shiftAllColumns,
+			shiftPrimaryKeyColumns,
 		)
 	}
 
@@ -635,7 +635,7 @@ func testOncallSchedulesSliceUpdateAll(t *testing.T) {
 		}
 	}
 
-	slice := OncallScheduleSlice{o}
+	slice := ShiftSlice{o}
 	if rowsAff, err := slice.UpdateAll(ctx, tx, updateMap); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
@@ -643,29 +643,29 @@ func testOncallSchedulesSliceUpdateAll(t *testing.T) {
 	}
 }
 
-func testOncallSchedulesUpsert(t *testing.T) {
+func testShiftsUpsert(t *testing.T) {
 	t.Parallel()
 
-	if len(oncallScheduleAllColumns) == len(oncallSchedulePrimaryKeyColumns) {
+	if len(shiftAllColumns) == len(shiftPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
 	// Attempt the INSERT side of an UPSERT
-	o := OncallSchedule{}
-	if err = randomize.Struct(seed, &o, oncallScheduleDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	o := Shift{}
+	if err = randomize.Struct(seed, &o, shiftDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 	if err = o.Upsert(ctx, tx, false, nil, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert OncallSchedule: %s", err)
+		t.Errorf("Unable to upsert Shift: %s", err)
 	}
 
-	count, err := OncallSchedules().Count(ctx, tx)
+	count, err := Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -674,15 +674,15 @@ func testOncallSchedulesUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &o, oncallScheduleDBTypes, false, oncallSchedulePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize OncallSchedule struct: %s", err)
+	if err = randomize.Struct(seed, &o, shiftDBTypes, false, shiftPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Shift struct: %s", err)
 	}
 
 	if err = o.Upsert(ctx, tx, true, nil, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert OncallSchedule: %s", err)
+		t.Errorf("Unable to upsert Shift: %s", err)
 	}
 
-	count, err = OncallSchedules().Count(ctx, tx)
+	count, err = Shifts().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}

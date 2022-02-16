@@ -39,7 +39,7 @@ func (c *creator) Create(callback slack.InteractionCallback) error {
 	if err != nil {
 		if errors.Is(err, schedule.ErrAlreadyExists) {
 			return c.respond(callback.Channel.ID, callback.ResponseURL,
-				":sweat: I don't quite support managing multiple on call schedules in a single channel yet... sorry",
+				":sweat: I don't support managing multiple on call schedules in a single channel yet... sorry",
 			)
 		}
 		return c.respond(callback.Channel.ID, callback.ResponseURL,

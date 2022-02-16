@@ -24,59 +24,49 @@ import (
 
 // Shift is an object representing the database table.
 type Shift struct {
-	ID               string    `db:"id" boil:"id" json:"id" toml:"id" yaml:"id"`
-	UserID           string    `db:"user_id" boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
-	OncallScheduleID string    `db:"oncall_schedule_id" boil:"oncall_schedule_id" json:"oncall_schedule_id" toml:"oncall_schedule_id" yaml:"oncall_schedule_id"`
-	NextShift        string    `db:"next_shift" boil:"next_shift" json:"next_shift" toml:"next_shift" yaml:"next_shift"`
-	PrevShift        string    `db:"prev_shift" boil:"prev_shift" json:"prev_shift" toml:"prev_shift" yaml:"prev_shift"`
-	CreatedAt        time.Time `db:"created_at" boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt        time.Time `db:"updated_at" boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
-	DeletedAt        null.Time `db:"deleted_at" boil:"deleted_at" json:"deleted_at,omitempty" toml:"deleted_at" yaml:"deleted_at,omitempty"`
+	ID         string    `db:"id" boil:"id" json:"id" toml:"id" yaml:"id"`
+	UserID     string    `db:"user_id" boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	ScheduleID string    `db:"schedule_id" boil:"schedule_id" json:"schedule_id" toml:"schedule_id" yaml:"schedule_id"`
+	CreatedAt  time.Time `db:"created_at" boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt  time.Time `db:"updated_at" boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	DeletedAt  null.Time `db:"deleted_at" boil:"deleted_at" json:"deleted_at,omitempty" toml:"deleted_at" yaml:"deleted_at,omitempty"`
 
 	R *shiftR `db:"-" boil:"-" json:"-" toml:"-" yaml:"-"`
 	L shiftL  `db:"-" boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ShiftColumns = struct {
-	ID               string
-	UserID           string
-	OncallScheduleID string
-	NextShift        string
-	PrevShift        string
-	CreatedAt        string
-	UpdatedAt        string
-	DeletedAt        string
+	ID         string
+	UserID     string
+	ScheduleID string
+	CreatedAt  string
+	UpdatedAt  string
+	DeletedAt  string
 }{
-	ID:               "id",
-	UserID:           "user_id",
-	OncallScheduleID: "oncall_schedule_id",
-	NextShift:        "next_shift",
-	PrevShift:        "prev_shift",
-	CreatedAt:        "created_at",
-	UpdatedAt:        "updated_at",
-	DeletedAt:        "deleted_at",
+	ID:         "id",
+	UserID:     "user_id",
+	ScheduleID: "schedule_id",
+	CreatedAt:  "created_at",
+	UpdatedAt:  "updated_at",
+	DeletedAt:  "deleted_at",
 }
 
 // Generated where
 
 var ShiftWhere = struct {
-	ID               whereHelperstring
-	UserID           whereHelperstring
-	OncallScheduleID whereHelperstring
-	NextShift        whereHelperstring
-	PrevShift        whereHelperstring
-	CreatedAt        whereHelpertime_Time
-	UpdatedAt        whereHelpertime_Time
-	DeletedAt        whereHelpernull_Time
+	ID         whereHelperstring
+	UserID     whereHelperstring
+	ScheduleID whereHelperstring
+	CreatedAt  whereHelpertime_Time
+	UpdatedAt  whereHelpertime_Time
+	DeletedAt  whereHelpernull_Time
 }{
-	ID:               whereHelperstring{field: "\"shift\".\"id\""},
-	UserID:           whereHelperstring{field: "\"shift\".\"user_id\""},
-	OncallScheduleID: whereHelperstring{field: "\"shift\".\"oncall_schedule_id\""},
-	NextShift:        whereHelperstring{field: "\"shift\".\"next_shift\""},
-	PrevShift:        whereHelperstring{field: "\"shift\".\"prev_shift\""},
-	CreatedAt:        whereHelpertime_Time{field: "\"shift\".\"created_at\""},
-	UpdatedAt:        whereHelpertime_Time{field: "\"shift\".\"updated_at\""},
-	DeletedAt:        whereHelpernull_Time{field: "\"shift\".\"deleted_at\""},
+	ID:         whereHelperstring{field: "\"shifts\".\"id\""},
+	UserID:     whereHelperstring{field: "\"shifts\".\"user_id\""},
+	ScheduleID: whereHelperstring{field: "\"shifts\".\"schedule_id\""},
+	CreatedAt:  whereHelpertime_Time{field: "\"shifts\".\"created_at\""},
+	UpdatedAt:  whereHelpertime_Time{field: "\"shifts\".\"updated_at\""},
+	DeletedAt:  whereHelpernull_Time{field: "\"shifts\".\"deleted_at\""},
 }
 
 // ShiftRels is where relationship names are stored.
@@ -96,8 +86,8 @@ func (*shiftR) NewStruct() *shiftR {
 type shiftL struct{}
 
 var (
-	shiftAllColumns            = []string{"id", "user_id", "oncall_schedule_id", "next_shift", "prev_shift", "created_at", "updated_at", "deleted_at"}
-	shiftColumnsWithoutDefault = []string{"user_id", "oncall_schedule_id", "next_shift", "prev_shift", "deleted_at"}
+	shiftAllColumns            = []string{"id", "user_id", "schedule_id", "created_at", "updated_at", "deleted_at"}
+	shiftColumnsWithoutDefault = []string{"user_id", "schedule_id", "deleted_at"}
 	shiftColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	shiftPrimaryKeyColumns     = []string{"id"}
 )
@@ -144,7 +134,7 @@ func (q shiftQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Shift,
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "model: failed to execute a one query for shift")
+		return nil, errors.Wrap(err, "model: failed to execute a one query for shifts")
 	}
 
 	return o, nil
@@ -171,7 +161,7 @@ func (q shiftQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: failed to count shift rows")
+		return 0, errors.Wrap(err, "model: failed to count shifts rows")
 	}
 
 	return count, nil
@@ -187,7 +177,7 @@ func (q shiftQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "model: failed to check if shift exists")
+		return false, errors.Wrap(err, "model: failed to check if shifts exists")
 	}
 
 	return count > 0, nil
@@ -195,7 +185,7 @@ func (q shiftQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool
 
 // Shifts retrieves all the records using an executor.
 func Shifts(mods ...qm.QueryMod) shiftQuery {
-	mods = append(mods, qm.From("\"shift\""), qmhelper.WhereIsNull("\"shift\".\"deleted_at\""))
+	mods = append(mods, qm.From("\"shifts\""), qmhelper.WhereIsNull("\"shifts\".\"deleted_at\""))
 	return shiftQuery{NewQuery(mods...)}
 }
 
@@ -209,7 +199,7 @@ func FindShift(ctx context.Context, exec boil.ContextExecutor, iD string, select
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"shift\" where \"id\"=$1 and \"deleted_at\" is null", sel,
+		"select %s from \"shifts\" where \"id\"=$1 and \"deleted_at\" is null", sel,
 	)
 
 	q := queries.Raw(query, iD)
@@ -219,7 +209,7 @@ func FindShift(ctx context.Context, exec boil.ContextExecutor, iD string, select
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "model: unable to select from shift")
+		return nil, errors.Wrap(err, "model: unable to select from shifts")
 	}
 
 	return shiftObj, nil
@@ -229,7 +219,7 @@ func FindShift(ctx context.Context, exec boil.ContextExecutor, iD string, select
 // See boil.Columns.InsertColumnSet documentation to understand column list inference for inserts.
 func (o *Shift) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if o == nil {
-		return errors.New("model: no shift provided for insertion")
+		return errors.New("model: no shifts provided for insertion")
 	}
 
 	var err error
@@ -268,9 +258,9 @@ func (o *Shift) Insert(ctx context.Context, exec boil.ContextExecutor, columns b
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO \"shift\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"shifts\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO \"shift\" %sDEFAULT VALUES%s"
+			cache.query = "INSERT INTO \"shifts\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
@@ -298,7 +288,7 @@ func (o *Shift) Insert(ctx context.Context, exec boil.ContextExecutor, columns b
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "model: unable to insert into shift")
+		return errors.Wrap(err, "model: unable to insert into shifts")
 	}
 
 	if !cached {
@@ -336,10 +326,10 @@ func (o *Shift) Update(ctx context.Context, exec boil.ContextExecutor, columns b
 			wl = strmangle.SetComplement(wl, []string{"created_at"})
 		}
 		if len(wl) == 0 {
-			return 0, errors.New("model: unable to update shift, could not build whitelist")
+			return 0, errors.New("model: unable to update shifts, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE \"shift\" SET %s WHERE %s",
+		cache.query = fmt.Sprintf("UPDATE \"shifts\" SET %s WHERE %s",
 			strmangle.SetParamNames("\"", "\"", 1, wl),
 			strmangle.WhereClause("\"", "\"", len(wl)+1, shiftPrimaryKeyColumns),
 		)
@@ -359,12 +349,12 @@ func (o *Shift) Update(ctx context.Context, exec boil.ContextExecutor, columns b
 	var result sql.Result
 	result, err = exec.ExecContext(ctx, cache.query, values...)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to update shift row")
+		return 0, errors.Wrap(err, "model: unable to update shifts row")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "model: failed to get rows affected by update for shift")
+		return 0, errors.Wrap(err, "model: failed to get rows affected by update for shifts")
 	}
 
 	if !cached {
@@ -382,12 +372,12 @@ func (q shiftQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, co
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to update all for shift")
+		return 0, errors.Wrap(err, "model: unable to update all for shifts")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to retrieve rows affected for shift")
+		return 0, errors.Wrap(err, "model: unable to retrieve rows affected for shifts")
 	}
 
 	return rowsAff, nil
@@ -420,7 +410,7 @@ func (o ShiftSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, co
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE \"shift\" SET %s WHERE %s",
+	sql := fmt.Sprintf("UPDATE \"shifts\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, shiftPrimaryKeyColumns, len(o)))
 
@@ -445,7 +435,7 @@ func (o ShiftSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, co
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
 func (o *Shift) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
-		return errors.New("model: no shift provided for upsert")
+		return errors.New("model: no shifts provided for upsert")
 	}
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
@@ -505,7 +495,7 @@ func (o *Shift) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnC
 		)
 
 		if updateOnConflict && len(update) == 0 {
-			return errors.New("model: unable to upsert shift, could not build update column list")
+			return errors.New("model: unable to upsert shifts, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -513,7 +503,7 @@ func (o *Shift) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnC
 			conflict = make([]string, len(shiftPrimaryKeyColumns))
 			copy(conflict, shiftPrimaryKeyColumns)
 		}
-		cache.query = buildUpsertQueryPostgres(dialect, "\"shift\"", updateOnConflict, ret, update, conflict, insert)
+		cache.query = buildUpsertQueryPostgres(dialect, "\"shifts\"", updateOnConflict, ret, update, conflict, insert)
 
 		cache.valueMapping, err = queries.BindMapping(shiftType, shiftMapping, insert)
 		if err != nil {
@@ -548,7 +538,7 @@ func (o *Shift) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnC
 		_, err = exec.ExecContext(ctx, cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "model: unable to upsert shift")
+		return errors.Wrap(err, "model: unable to upsert shifts")
 	}
 
 	if !cached {
@@ -573,12 +563,12 @@ func (o *Shift) Delete(ctx context.Context, exec boil.ContextExecutor, hardDelet
 	)
 	if hardDelete {
 		args = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), shiftPrimaryKeyMapping)
-		sql = "DELETE FROM \"shift\" WHERE \"id\"=$1"
+		sql = "DELETE FROM \"shifts\" WHERE \"id\"=$1"
 	} else {
 		currTime := time.Now().In(boil.GetLocation())
 		o.DeletedAt = null.TimeFrom(currTime)
 		wl := []string{"deleted_at"}
-		sql = fmt.Sprintf("UPDATE \"shift\" SET %s WHERE \"id\"=$2",
+		sql = fmt.Sprintf("UPDATE \"shifts\" SET %s WHERE \"id\"=$2",
 			strmangle.SetParamNames("\"", "\"", 1, wl),
 		)
 		valueMapping, err := queries.BindMapping(shiftType, shiftMapping, append(wl, shiftPrimaryKeyColumns...))
@@ -595,12 +585,12 @@ func (o *Shift) Delete(ctx context.Context, exec boil.ContextExecutor, hardDelet
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to delete from shift")
+		return 0, errors.Wrap(err, "model: unable to delete from shifts")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "model: failed to get rows affected by delete for shift")
+		return 0, errors.Wrap(err, "model: failed to get rows affected by delete for shifts")
 	}
 
 	return rowsAff, nil
@@ -621,12 +611,12 @@ func (q shiftQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor, ha
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "model: unable to delete all from shift")
+		return 0, errors.Wrap(err, "model: unable to delete all from shifts")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "model: failed to get rows affected by deleteall for shift")
+		return 0, errors.Wrap(err, "model: failed to get rows affected by deleteall for shifts")
 	}
 
 	return rowsAff, nil
@@ -647,7 +637,7 @@ func (o ShiftSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor, ha
 			pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), shiftPrimaryKeyMapping)
 			args = append(args, pkeyArgs...)
 		}
-		sql = "DELETE FROM \"shift\" WHERE " +
+		sql = "DELETE FROM \"shifts\" WHERE " +
 			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, shiftPrimaryKeyColumns, len(o))
 	} else {
 		currTime := time.Now().In(boil.GetLocation())
@@ -657,7 +647,7 @@ func (o ShiftSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor, ha
 			obj.DeletedAt = null.TimeFrom(currTime)
 		}
 		wl := []string{"deleted_at"}
-		sql = fmt.Sprintf("UPDATE \"shift\" SET %s WHERE "+
+		sql = fmt.Sprintf("UPDATE \"shifts\" SET %s WHERE "+
 			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 2, shiftPrimaryKeyColumns, len(o)),
 			strmangle.SetParamNames("\"", "\"", 1, wl),
 		)
@@ -676,7 +666,7 @@ func (o ShiftSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor, ha
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "model: failed to get rows affected by deleteall for shift")
+		return 0, errors.Wrap(err, "model: failed to get rows affected by deleteall for shifts")
 	}
 
 	return rowsAff, nil
@@ -708,7 +698,7 @@ func (o *ShiftSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) e
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT \"shift\".* FROM \"shift\" WHERE " +
+	sql := "SELECT \"shifts\".* FROM \"shifts\" WHERE " +
 		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, shiftPrimaryKeyColumns, len(*o)) +
 		"and \"deleted_at\" is null"
 
@@ -727,7 +717,7 @@ func (o *ShiftSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) e
 // ShiftExists checks if the Shift row exists.
 func ShiftExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"shift\" where \"id\"=$1 and \"deleted_at\" is null limit 1)"
+	sql := "select exists(select 1 from \"shifts\" where \"id\"=$1 and \"deleted_at\" is null limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -738,7 +728,7 @@ func ShiftExists(ctx context.Context, exec boil.ContextExecutor, iD string) (boo
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "model: unable to check if shift exists")
+		return false, errors.Wrap(err, "model: unable to check if shifts exists")
 	}
 
 	return exists, nil

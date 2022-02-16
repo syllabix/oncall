@@ -8,6 +8,7 @@ import (
 	"github.com/syllabix/oncall/config"
 	"github.com/syllabix/oncall/slack/command/add"
 	"github.com/syllabix/oncall/slack/command/schedule"
+	"go.uber.org/zap"
 )
 
 var (
@@ -25,13 +26,16 @@ type Handler interface {
 func NewHandler(
 	config config.SlackSettings,
 	adder add.Handler,
+	log *zap.Logger,
 ) Handler {
-	return &handler{config, adder}
+	return &handler{config, adder, log}
 }
 
 type handler struct {
 	config config.SlackSettings
 	adder  add.Handler
+
+	log *zap.Logger
 }
 
 func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
@@ -62,16 +66,30 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 	case "/add":
 		err := h.adder.AddToSchedule(cmd)
 		if err != nil {
-			if errors.Is(err, add.ErrInvalidInput) {
+			h.log.Error("failed to add user to schedule",
+				zap.Error(err),
+				zap.String("channel", cmd.ChannelID))
+
+			switch {
+			case errors.Is(err, add.ErrInvalidInput):
 				return slack.Attachment{
 					Title: "Failed to create new shifts",
 					Text:  ":warning: The */add* command expects one more @ user mentions to add them to a schedule",
 				}, nil
+
+			case errors.Is(err, add.ErrNoAvailableSchedule):
+				return slack.Attachment{
+					Title: "Failed to create new shifts",
+					Text:  ":warning: There is no on call schedule set up for this channel. Please create one with the */schedule create* command",
+				}, nil
+
+			default:
+				return slack.Attachment{
+					Title: "Something went wrong",
+					Text:  ":cry: O wow this embarrassing but I was not able to add team members to the schedule",
+				}, nil
 			}
-			return slack.Attachment{
-				Title: "Something went wrong",
-				Text:  ":cry: O wow this embarrassing but I was not able to add team members to the schedule",
-			}, nil
+
 		}
 		return slack.Attachment{
 			Title: "Schedule updated!",

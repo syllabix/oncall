@@ -6,8 +6,10 @@ import (
 	"github.com/syllabix/oncall/api"
 	"github.com/syllabix/oncall/client"
 	"github.com/syllabix/oncall/config"
+	"github.com/syllabix/oncall/datastore"
 	observabilty "github.com/syllabix/oncall/observability"
 	"github.com/syllabix/oncall/service"
+	"github.com/syllabix/oncall/slack"
 	"github.com/syllabix/oncall/web"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -40,13 +42,13 @@ func NewApplication(options ...Option) Application {
 
 		// application dependencies
 		fx.Provide(config.Load),
-		// db.Module,
+		datastore.Module,
 		api.Module,
 		web.Module,
 		observabilty.Module,
 		service.Module,
 		client.Module,
-		// datastore.Module,
+		slack.Module,
 
 		// start the engines
 		fx.Invoke(start),

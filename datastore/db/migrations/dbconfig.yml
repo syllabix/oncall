@@ -1,0 +1,6 @@
+
+dev:
+  dialect: postgres
+  datasource: dbname=oncall sslmode=disable user=admin password=p4ssw0rd host=postgres port=5432
+  dir: datastore/db/migrations
+  table: migrations # name of the migrations table

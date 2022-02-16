@@ -8,4 +8,5 @@ import (
 // that power api middleware
 var Module = fx.Provide(
 	NewSlackVerifier,
+	NewLogger,
 )

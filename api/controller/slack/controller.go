@@ -35,7 +35,6 @@ func NewController(
 
 func (ctrl *Controller) Register(router *httprouter.Router) {
 	router.POST("/slack/action", ctrl.HandleAction)
-	router.POST("/slack/interaction", ctrl.verifier.Verify(ctrl.HandleInteraction))
 	router.POST("/slack/load-options", ctrl.verifier.Verify(ctrl.LoadOptions))
 }
 
@@ -48,6 +47,8 @@ func (ctrl *Controller) HandleAction(w http.ResponseWriter, r *http.Request, _ h
 		return
 	}
 
+	fmt.Println(event.Type)
+
 	switch event.Type {
 	case slackevents.URLVerification:
 		ctrl.verifyURL(w, event.RawMessage)
@@ -56,24 +57,11 @@ func (ctrl *Controller) HandleAction(w http.ResponseWriter, r *http.Request, _ h
 	case slackevents.CallbackEvent:
 		err = ctrl.handler.Handle(event.EventsAPIEvent)
 		if err != nil {
-			ctrl.log.Error("failed to unmarshal url verification body", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	}
 
-	fmt.Fprint(w, "Ok")
-}
-
-func (ctrl *Controller) HandleInteraction(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var payload strings.Builder
-	_, err := io.Copy(&payload, r.Body)
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-	fmt.Println("handle action", payload.String())
-	w.WriteHeader(200)
 	fmt.Fprint(w, "Ok")
 }
 

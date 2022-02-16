@@ -1,0 +1,60 @@
+display_information:
+  name: On Call
+  description: Incident Response Manager
+  background_color: "#2c404d"
+features:
+  bot_user:
+    display_name: On Call
+    always_online: true
+  slash_commands:
+    - command: /schedule
+      url: {{ .BaseURL }}/slack/command/schedule
+      description: Create, view or edit an on call schedule
+      usage_hint: create, view, edit
+      should_escape: true
+    - command: /add
+      url: {{ .BaseURL }}/slack/command/add
+      description: Adds a team member to the on call schedule
+      usage_hint: "@user-handle"
+      should_escape: true
+    - command: /swap
+      url: {{ .BaseURL }}/slack/command/swap
+      description: Swap shifts between two team members
+      usage_hint: "@me @teamate"
+      should_escape: true
+    - command: /withdraw
+      url: {{ .BaseURL }}/slack/command/withdraw
+      description: Remove a user from the shift rotation
+      usage_hint: "@user-handle"
+      should_escape: true
+    - command: /override
+      url: {{ .BaseURL }}/slack/command/override
+      description: Override the current shift with a new team member
+      usage_hint: "@user-handle"
+      should_escape: true
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read
+      - channels:history
+      - channels:join
+      - channels:manage
+      - chat:write
+      - chat:write.customize
+      - incoming-webhook
+      - users:read
+      - usergroups:read
+      - channels:read
+      - commands
+settings:
+  event_subscriptions:
+    request_url: {{ .BaseURL }}/slack/action
+    bot_events:
+      - app_mention
+  interactivity:
+    is_enabled: true
+    request_url: {{ .BaseURL }}/slack/interaction
+    message_menu_options_url: {{ .BaseURL }}/slack/load-options
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

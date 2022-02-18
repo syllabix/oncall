@@ -10,14 +10,20 @@ const (
 	BiWeekly Interval = "bi-weekly"
 )
 
+type UserOnDuty struct {
+	SlackHandle string
+}
+
 type Schedule struct {
-	ID        string
-	TeamID    string
-	ChannelID string
-	Name      string
-	StartTime time.Time
-	EndTime   time.Time
-	Interval  Interval
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID            string
+	TeamID        string
+	ChannelID     string
+	Name          string
+	StartTime     time.Time
+	EndTime       time.Time
+	Interval      Interval
+	ActiveShift   *UserOnDuty
+	OverrideShift *UserOnDuty
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }

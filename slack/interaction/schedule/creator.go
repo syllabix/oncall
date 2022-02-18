@@ -9,6 +9,7 @@ import (
 	"github.com/syllabix/oncall/service/schedule"
 	"github.com/syllabix/oncall/service/schedule/oncall"
 	"github.com/syllabix/oncall/slack/forminput"
+	"github.com/syllabix/oncall/slack/notifications"
 )
 
 type Creator interface {
@@ -18,13 +19,15 @@ type Creator interface {
 func NewCreator(
 	client *slack.Client,
 	scheduler schedule.Manager,
+	notifier notifications.Service,
 ) Creator {
-	return &creator{client, scheduler}
+	return &creator{client, scheduler, notifier}
 }
 
 type creator struct {
 	client    *slack.Client
 	scheduler schedule.Manager
+	notifier  notifications.Service
 }
 
 func (c *creator) Create(callback slack.InteractionCallback) error {
@@ -46,6 +49,8 @@ func (c *creator) Create(callback slack.InteractionCallback) error {
 			":cry: O no... something did not go quite right when setting up your new schedule",
 		)
 	}
+
+	c.notifier.Schedule(sched)
 
 	_, err = c.client.SetTopicOfConversation(callback.Channel.ID, sched.Name+": no engineer on duty")
 	if err != nil {

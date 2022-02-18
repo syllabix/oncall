@@ -10,6 +10,7 @@ import (
 	observabilty "github.com/syllabix/oncall/observability"
 	"github.com/syllabix/oncall/service"
 	"github.com/syllabix/oncall/slack"
+	"github.com/syllabix/oncall/slack/notifications"
 	"github.com/syllabix/oncall/web"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -52,6 +53,7 @@ func NewApplication(options ...Option) Application {
 
 		// start the engines
 		fx.Invoke(start),
+		fx.Invoke(notifications.ScheduleAll),
 		fx.Invoke(observabilty.StartProfiler),
 	)
 

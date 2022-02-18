@@ -7,10 +7,28 @@ import (
 
 func createStmt(db db.Database) (*sqlx.NamedStmt, error) {
 	return db.PrepareNamed(`
-	INSERT INTO schedules 
-	(team_slack_id, name, interval, start_time, end_time, slack_channel_id) VALUES
-	(:team_slack_id, :name, :interval, :start_time, :end_time, :slack_channel_id)
-	RETURNING id, created_at, updated_at`,
+		INSERT INTO schedules 
+		(team_slack_id, name, interval, start_time, end_time, slack_channel_id) VALUES
+		(:team_slack_id, :name, :interval, :start_time, :end_time, :slack_channel_id)
+		RETURNING id, created_at, updated_at`,
+	)
+}
+
+func updateStmt(db db.Database) (*sqlx.NamedStmt, error) {
+	return db.PrepareNamed(`
+		UPDATE schedules SET
+			name = :name,
+			team_slack_id = :team_slack_id,
+			interval = :interval,
+			start_time = :start_time,
+			end_time = :end_time,
+			slack_channel_id = :slack_channel_id,
+			shifts = :shifts, 
+			active_shift = :active_shift, 
+			updated_at = now()
+		WHERE id = :id
+		RETURNING
+			id, created_at, updated_at`,
 	)
 }
 

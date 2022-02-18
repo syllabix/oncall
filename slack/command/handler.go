@@ -26,14 +26,16 @@ type Handler interface {
 func NewHandler(
 	config config.SlackSettings,
 	adder add.Handler,
+	schedule schedule.Handler,
 	log *zap.Logger,
 ) Handler {
-	return &handler{config, adder, log}
+	return &handler{config, adder, schedule, log}
 }
 
 type handler struct {
-	config config.SlackSettings
-	adder  add.Handler
+	config   config.SlackSettings
+	adder    add.Handler
+	schedule schedule.Handler
 
 	log *zap.Logger
 }
@@ -54,7 +56,9 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 		case schedule.Create:
 			return schedule.NewForm(), nil
 
-		// case schedule.View:
+		case schedule.View:
+			return h.schedule.GetUpcomingShifts(cmd.ChannelID)
+
 		// case schedule.Edit:
 		default:
 			return slack.Attachment{
@@ -86,7 +90,7 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 			default:
 				return slack.Attachment{
 					Title: "Something went wrong",
-					Text:  ":cry: O wow this embarrassing but I was not able to add team members to the schedule",
+					Text:  ":cry: O wow this is embarrassing but I was not able to add team members to the schedule",
 				}, nil
 			}
 

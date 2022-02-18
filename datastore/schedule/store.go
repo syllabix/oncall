@@ -11,9 +11,10 @@ import (
 )
 
 type Store struct {
-	db            db.Database
-	create        *sqlx.NamedStmt
-	listByChannel *sqlx.Stmt
+	db        db.Database
+	create    *sqlx.NamedStmt
+	update    *sqlx.NamedStmt
+	schedules *sqlx.Stmt
 }
 
 func NewStore(db db.Database) (Store, error) {
@@ -22,14 +23,19 @@ func NewStore(db db.Database) (Store, error) {
 		return Store{}, fmt.Errorf("failed to setup schedule data store: %w", err)
 	}
 
-	listByChannel, err := db.Preparex(`
-		SELECT * FROM schedules WHERE slack_channel_id = $1
+	schedules, err := db.Preparex(`
+		SELECT * FROM schedules WHERE is_enabled = true
 	`)
 	if err != nil {
 		return Store{}, fmt.Errorf("failed to setup schedule data store: %w", err)
 	}
 
-	return Store{db, create, listByChannel}, nil
+	update, err := updateStmt(db)
+	if err != nil {
+		return Store{}, fmt.Errorf("failed to setup schedule data store: %w", err)
+	}
+
+	return Store{db, create, update, schedules}, nil
 }
 
 func (s *Store) Create(schedule model.Schedule) (model.Schedule, error) {
@@ -39,15 +45,44 @@ func (s *Store) Create(schedule model.Schedule) (model.Schedule, error) {
 			fmt.Errorf("could not create schedule: %w", err),
 		)
 	}
+
 	return schedule, nil
 }
 
-func (s *Store) GetForChannel(id string) (model.ScheduleSlice, error) {
+func (s *Store) Update(schedule model.Schedule) (model.Schedule, error) {
+	err := s.update.Get(&schedule, &schedule)
+	if err != nil {
+		return failure[model.Schedule](
+			fmt.Errorf("could not update schedule: %w", err),
+		)
+	}
+	return schedule, nil
+}
+
+func (s *Store) GetByID(scheduleID string) (model.Schedule, error) {
+	var sched model.Schedule
+	err := s.db.Get(&sched, "SELECT * FROM schedules WHERE id = $1", scheduleID)
+	if err != nil {
+		return sched, err
+	}
+	return sched, err
+}
+
+func (s *Store) GetByChannelID(channelID string) (model.Schedule, error) {
+	var sched model.Schedule
+	err := s.db.Get(&sched, "SELECT * FROM schedules WHERE slack_channel_id = $1", channelID)
+	if err != nil {
+		return sched, err
+	}
+	return sched, err
+}
+
+func (s *Store) GetEnabledSchedules() (model.ScheduleSlice, error) {
 	var schedules model.ScheduleSlice
-	err := s.listByChannel.Select(&schedules, id)
+	err := s.schedules.Select(&schedules)
 	if err != nil {
 		return failure[model.ScheduleSlice](
-			fmt.Errorf("could not create schedule: %w", err),
+			fmt.Errorf("failed to fetch schedules: %w", err),
 		)
 	}
 	return schedules, nil

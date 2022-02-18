@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS schedules (
     active_shift uuid NULL,
     override_shift uuid NULL,
     shifts text[] NOT NULL DEFAULT array[]::text[],
+    weekdays_only boolean NOT NULL DEFAULT true,
     created_at timestamp with time zone NOT NULL DEFAULT ('now'::text)::timestamp with time zone,
     updated_at timestamp with time zone NOT NULL DEFAULT ('now'::text)::timestamp with time zone,
     deleted_at timestamp with time zone NULL

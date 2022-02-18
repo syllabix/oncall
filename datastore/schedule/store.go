@@ -68,6 +68,15 @@ func (s *Store) GetByID(scheduleID string) (model.Schedule, error) {
 	return sched, err
 }
 
+func (s *Store) GetByChannelID(channelID string) (model.Schedule, error) {
+	var sched model.Schedule
+	err := s.db.Get(&sched, "SELECT * FROM schedules WHERE slack_channel_id = $1", channelID)
+	if err != nil {
+		return sched, err
+	}
+	return sched, err
+}
+
 func (s *Store) GetEnabledSchedules() (model.ScheduleSlice, error) {
 	var schedules model.ScheduleSlice
 	err := s.schedules.Select(&schedules)

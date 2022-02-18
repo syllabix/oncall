@@ -1,6 +1,8 @@
 package notifications
 
 import (
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/go-co-op/gocron"
@@ -47,25 +49,30 @@ func (s *service) ScheduleAll() error {
 }
 
 func (s *service) Schedule(schedule oncall.Schedule) error {
-	s.scheduler.Every(5).Seconds().Tag(schedule.ID).Do(func() {
-		err := s.startShift(schedule.ID)
-		if err != nil {
-			s.log.Error("an issue occured while starting a shift",
-				zap.Error(err),
-				zap.String("schedule-id", schedule.ID),
-			)
-		}
-	})
 
-	s.scheduler.Every(10).Seconds().WaitForSchedule().Tag(schedule.ID).Do(func() {
-		err := s.endShift(schedule.ID)
-		if err != nil {
-			s.log.Error("an issue occured while starting a shift",
-				zap.Error(err),
-				zap.String("schedule-id", schedule.ID),
-			)
-		}
-	})
+	var (
+		endhour   = strconv.Itoa(schedule.EndTime.Hour())
+		starthour = strconv.Itoa(schedule.StartTime.Hour())
+
+		startExpr string
+		endExpr   string
+	)
+
+	if schedule.WeekdaysOnly {
+		startExpr = fmt.Sprintf("1 %s * * 1-5", starthour)
+		endExpr = fmt.Sprintf("1 %s * * 1-5", endhour)
+	} else {
+		startExpr = fmt.Sprintf("1 %s * * 0-6", starthour)
+		endExpr = fmt.Sprintf("1 %s * * 0-6", endhour)
+	}
+
+	s.scheduler.Cron(startExpr).Do(func() { s.startShift(schedule.ID) })
+	s.scheduler.Cron(endExpr).Do(func() { s.startShift(schedule.ID) })
+	s.log.Info("on call shifts have been scheduled",
+		zap.String("schedule-id", schedule.ID),
+		zap.String("shift-start", startExpr),
+		zap.String("shift-end", startExpr),
+	)
 
 	return nil
 }
@@ -81,7 +88,10 @@ func (s *service) Stop() {
 func (s *service) startShift(scheduleID string) error {
 	sched, err := s.manager.StartShift(scheduleID)
 	if err != nil {
-		return err
+		s.log.Error("an issue occured while starting a shift",
+			zap.Error(err),
+			zap.String("schedule-id", scheduleID),
+		)
 	}
 
 	if sched.ActiveShift == nil {
@@ -102,7 +112,10 @@ func (s *service) startShift(scheduleID string) error {
 func (s *service) endShift(scheduleID string) error {
 	sched, err := s.manager.EndShift(scheduleID)
 	if err != nil {
-		return err
+		s.log.Error("an issue occured while starting a shift",
+			zap.Error(err),
+			zap.String("schedule-id", scheduleID),
+		)
 	}
 
 	if sched.ActiveShift == nil {

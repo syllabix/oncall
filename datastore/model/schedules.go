@@ -36,6 +36,7 @@ type Schedule struct {
 	ActiveShift    null.String       `db:"active_shift" boil:"active_shift" json:"active_shift,omitempty" toml:"active_shift" yaml:"active_shift,omitempty"`
 	OverrideShift  null.String       `db:"override_shift" boil:"override_shift" json:"override_shift,omitempty" toml:"override_shift" yaml:"override_shift,omitempty"`
 	Shifts         types.StringArray `db:"shifts" boil:"shifts" json:"shifts" toml:"shifts" yaml:"shifts"`
+	WeekdaysOnly   bool              `db:"weekdays_only" boil:"weekdays_only" json:"weekdays_only" toml:"weekdays_only" yaml:"weekdays_only"`
 	CreatedAt      time.Time         `db:"created_at" boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt      time.Time         `db:"updated_at" boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 	DeletedAt      null.Time         `db:"deleted_at" boil:"deleted_at" json:"deleted_at,omitempty" toml:"deleted_at" yaml:"deleted_at,omitempty"`
@@ -56,6 +57,7 @@ var ScheduleColumns = struct {
 	ActiveShift    string
 	OverrideShift  string
 	Shifts         string
+	WeekdaysOnly   string
 	CreatedAt      string
 	UpdatedAt      string
 	DeletedAt      string
@@ -71,6 +73,7 @@ var ScheduleColumns = struct {
 	ActiveShift:    "active_shift",
 	OverrideShift:  "override_shift",
 	Shifts:         "shifts",
+	WeekdaysOnly:   "weekdays_only",
 	CreatedAt:      "created_at",
 	UpdatedAt:      "updated_at",
 	DeletedAt:      "deleted_at",
@@ -210,6 +213,7 @@ var ScheduleWhere = struct {
 	ActiveShift    whereHelpernull_String
 	OverrideShift  whereHelpernull_String
 	Shifts         whereHelpertypes_StringArray
+	WeekdaysOnly   whereHelperbool
 	CreatedAt      whereHelpertime_Time
 	UpdatedAt      whereHelpertime_Time
 	DeletedAt      whereHelpernull_Time
@@ -225,6 +229,7 @@ var ScheduleWhere = struct {
 	ActiveShift:    whereHelpernull_String{field: "\"schedules\".\"active_shift\""},
 	OverrideShift:  whereHelpernull_String{field: "\"schedules\".\"override_shift\""},
 	Shifts:         whereHelpertypes_StringArray{field: "\"schedules\".\"shifts\""},
+	WeekdaysOnly:   whereHelperbool{field: "\"schedules\".\"weekdays_only\""},
 	CreatedAt:      whereHelpertime_Time{field: "\"schedules\".\"created_at\""},
 	UpdatedAt:      whereHelpertime_Time{field: "\"schedules\".\"updated_at\""},
 	DeletedAt:      whereHelpernull_Time{field: "\"schedules\".\"deleted_at\""},
@@ -247,9 +252,9 @@ func (*scheduleR) NewStruct() *scheduleR {
 type scheduleL struct{}
 
 var (
-	scheduleAllColumns            = []string{"id", "slack_channel_id", "team_slack_id", "name", "interval", "is_enabled", "start_time", "end_time", "active_shift", "override_shift", "shifts", "created_at", "updated_at", "deleted_at"}
+	scheduleAllColumns            = []string{"id", "slack_channel_id", "team_slack_id", "name", "interval", "is_enabled", "start_time", "end_time", "active_shift", "override_shift", "shifts", "weekdays_only", "created_at", "updated_at", "deleted_at"}
 	scheduleColumnsWithoutDefault = []string{"slack_channel_id", "team_slack_id", "name", "interval", "start_time", "end_time", "active_shift", "override_shift", "deleted_at"}
-	scheduleColumnsWithDefault    = []string{"id", "is_enabled", "shifts", "created_at", "updated_at"}
+	scheduleColumnsWithDefault    = []string{"id", "is_enabled", "shifts", "weekdays_only", "created_at", "updated_at"}
 	schedulePrimaryKeyColumns     = []string{"id"}
 )
 

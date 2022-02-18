@@ -42,8 +42,6 @@ func (h handler) handleAppMention(event *slackevents.AppMentionEvent) error {
 		return err
 	}
 
-	fmt.Printf("\nuser:\n%+v\n", user)
-
 	// Check if the user said Hello to the bot
 	text := strings.ToLower(event.Text)
 

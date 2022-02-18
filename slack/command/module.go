@@ -2,6 +2,7 @@ package command
 
 import (
 	"github.com/syllabix/oncall/slack/command/add"
+	"github.com/syllabix/oncall/slack/command/schedule"
 	"go.uber.org/fx"
 )
 
@@ -10,4 +11,5 @@ import (
 var Module = fx.Provide(
 	NewHandler,
 	add.NewHandler,
+	schedule.NewHandler,
 )

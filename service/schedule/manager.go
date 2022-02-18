@@ -18,6 +18,7 @@ var (
 type Manager interface {
 	Create(oncall.Schedule) (oncall.Schedule, error)
 	GetAll() ([]oncall.Schedule, error)
+	GetNextShifts(channelID string) ([]oncall.Shift, error)
 	StartShift(scheduleID string) (oncall.Schedule, error)
 	EndShift(scheduleID string) (oncall.Schedule, error)
 }
@@ -54,6 +55,21 @@ func (m *manager) GetAll() ([]oncall.Schedule, error) {
 	}
 
 	return schedules, nil
+}
+
+func (m *manager) GetNextShifts(channelID string) ([]oncall.Shift, error) {
+	schedule, err := m.db.GetByChannelID(channelID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve on call schedule for channel id: %w", err)
+	}
+
+	userIDs := nextFiveShifts(schedule)
+	users, err := m.users.GetAll(userIDs...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch users for upcoming shifts: %w", err)
+	}
+
+	return asShifts(users, schedule), nil
 }
 
 func (m *manager) StartShift(scheduleID string) (oncall.Schedule, error) {
@@ -124,14 +140,16 @@ func asModel(schedule oncall.Schedule) model.Schedule {
 
 func asSchedule(model model.Schedule) oncall.Schedule {
 	return oncall.Schedule{
-		ID:        model.ID,
-		Name:      model.Name,
-		TeamID:    model.TeamSlackID,
-		Interval:  oncall.Interval(model.Interval),
-		ChannelID: model.SlackChannelID,
-		StartTime: model.StartTime,
-		EndTime:   model.EndTime,
-		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
+		ID:           model.ID,
+		Name:         model.Name,
+		TeamID:       model.TeamSlackID,
+		Interval:     oncall.Interval(model.Interval),
+		ChannelID:    model.SlackChannelID,
+		WeekdaysOnly: model.WeekdaysOnly,
+		IsEnabled:    model.IsEnabled,
+		StartTime:    model.StartTime,
+		EndTime:      model.EndTime,
+		CreatedAt:    model.CreatedAt,
+		UpdatedAt:    model.UpdatedAt,
 	}
 }

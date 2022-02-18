@@ -14,6 +14,15 @@ type UserOnDuty struct {
 	SlackHandle string
 }
 
+type Shift struct {
+	UserID      string
+	FirstName   string
+	LastName    string
+	SlackHandle string
+	StartTime   time.Time
+	EndTime     time.Time
+}
+
 type Schedule struct {
 	ID            string
 	TeamID        string
@@ -24,6 +33,8 @@ type Schedule struct {
 	Interval      Interval
 	ActiveShift   *UserOnDuty
 	OverrideShift *UserOnDuty
+	WeekdaysOnly  bool
+	IsEnabled     bool
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }

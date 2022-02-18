@@ -10,7 +10,7 @@ import (
 	"github.com/slack-go/slack/slackevents"
 	"github.com/syllabix/oncall/api/middleware"
 	"github.com/syllabix/oncall/api/rest"
-	"github.com/syllabix/oncall/service/slack/event"
+	"github.com/syllabix/oncall/slack/event"
 	"go.uber.org/zap"
 )
 
@@ -46,8 +46,6 @@ func (ctrl *Controller) HandleAction(w http.ResponseWriter, r *http.Request, _ h
 			http.StatusBadRequest)
 		return
 	}
-
-	fmt.Println(event.Type)
 
 	switch event.Type {
 	case slackevents.URLVerification:

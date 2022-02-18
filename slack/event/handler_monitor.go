@@ -3,12 +3,13 @@ package event
 import (
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
+	"github.com/syllabix/oncall/service/schedule"
 	"go.uber.org/zap"
 )
 
-func NewHandler(client *slack.Client, log *zap.Logger) Handler {
+func NewHandler(client *slack.Client, manager schedule.Manager, log *zap.Logger) Handler {
 	return &handlermonitor{
-		handler: &handler{client},
+		handler: &handler{client, manager},
 		log:     log,
 	}
 }

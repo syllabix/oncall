@@ -3,6 +3,7 @@ package schedule
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/syllabix/oncall/datastore/model"
 	"github.com/syllabix/oncall/datastore/schedule"
@@ -13,11 +14,13 @@ import (
 
 var (
 	ErrAlreadyExists = errors.New("there is already a schedule configured for this channel")
+	ErrNoActiveShift = errors.New("there is no active shift for this schedule")
 )
 
 type Manager interface {
 	Create(oncall.Schedule) (oncall.Schedule, error)
 	GetAll() ([]oncall.Schedule, error)
+	GetActiveShift(channelID string) (oncall.Shift, error)
 	GetNextShifts(channelID string) ([]oncall.Shift, error)
 	StartShift(scheduleID string) (oncall.Schedule, error)
 	EndShift(scheduleID string) (oncall.Schedule, error)
@@ -70,6 +73,34 @@ func (m *manager) GetNextShifts(channelID string) ([]oncall.Shift, error) {
 	}
 
 	return asShifts(users, schedule), nil
+}
+
+func (m *manager) GetActiveShift(channelID string) (oncall.Shift, error) {
+	schedule, err := m.db.GetByChannelID(channelID)
+	if err != nil {
+		return oncall.Shift{}, fmt.Errorf("failed to retrieve active on call shift: %w", err)
+	}
+
+	now := time.Now()
+	if now.Before(schedule.StartTime) && now.After(schedule.EndTime) {
+		return oncall.Shift{}, ErrNoActiveShift
+	}
+
+	if schedule.ActiveShift.IsZero() {
+		return oncall.Shift{}, ErrNoActiveShift
+	}
+
+	user, err := m.users.GetByID(schedule.ActiveShift.String)
+	if err != nil {
+		return oncall.Shift{}, fmt.Errorf("failed to retrieve user for active shift: %w", err)
+	}
+
+	return oncall.Shift{
+		UserID:      user.ID,
+		SlackHandle: user.SlackHandle,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+	}, nil
 }
 
 func (m *manager) StartShift(scheduleID string) (oncall.Schedule, error) {

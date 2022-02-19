@@ -66,12 +66,15 @@ func (s *service) Schedule(schedule oncall.Schedule) error {
 		endExpr = fmt.Sprintf("1 %s * * 0-6", endhour)
 	}
 
-	s.scheduler.Cron(startExpr).Do(func() { s.startShift(schedule.ID) })
-	s.scheduler.Cron(endExpr).Do(func() { s.endShift(schedule.ID) })
+	s.scheduler.Every(10).Seconds().WaitForSchedule().Do(func() { s.startShift(schedule.ID) })
+	s.scheduler.Every(10).Seconds().WaitForSchedule().Do(func() {
+		time.Sleep(time.Second * 5)
+		s.endShift(schedule.ID)
+	})
 	s.log.Info("on call shifts have been scheduled",
 		zap.Int("schedule-id", schedule.ID),
 		zap.String("shift-start", startExpr),
-		zap.String("shift-end", startExpr),
+		zap.String("shift-end", endExpr),
 	)
 
 	return nil
@@ -82,7 +85,9 @@ func (s *service) Start() {
 }
 
 func (s *service) Stop() {
+	s.log.Info("stopping scheduled jobs...")
 	s.scheduler.Stop()
+	s.log.Info("jobs stopped")
 }
 
 func (s *service) startShift(scheduleID int) error {

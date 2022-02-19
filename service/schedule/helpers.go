@@ -7,6 +7,51 @@ import (
 	"github.com/syllabix/oncall/service/schedule/oncall"
 )
 
+func nextShiftFrom(schedule *model.Schedule) (current *model.Shift, next *model.Shift) {
+	idx := 0
+	for i, shift := range schedule.R.Shifts {
+		if shift.Status.String == model.ShiftStatusActive {
+			idx = i + 1
+			current = shift
+			break
+		}
+	}
+
+	if idx >= len(schedule.R.Shifts)-1 {
+		return current, schedule.R.Shifts[0]
+	}
+
+	return current, schedule.R.Shifts[1]
+}
+
+func isAfterHours(schedule *model.Schedule) bool {
+	now := time.Now()
+	start := time.Date(
+		now.Year(),
+		now.Month(),
+		now.Day(),
+		schedule.StartTime.Hour(),
+		schedule.StartTime.Minute(),
+		schedule.StartTime.Second(),
+		schedule.StartTime.Nanosecond(),
+		time.UTC,
+	)
+	end := time.Date(
+		now.Year(),
+		now.Month(),
+		now.Day(),
+		schedule.EndTime.Hour(),
+		schedule.EndTime.Minute(),
+		schedule.EndTime.Second(),
+		schedule.EndTime.Nanosecond(),
+		time.UTC,
+	)
+	if now.Before(start) || now.After(end) {
+		return true
+	}
+	return false
+}
+
 func arrange(shifts model.ShiftSlice) (active *model.Shift, ordered model.ShiftSlice) {
 	if len(shifts) < 1 {
 		return nil, nil

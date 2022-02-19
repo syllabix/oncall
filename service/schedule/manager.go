@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/syllabix/oncall/common/is"
 	"github.com/syllabix/oncall/datastore/model"
 	"github.com/syllabix/oncall/datastore/schedule"
+	"github.com/syllabix/oncall/datastore/shift"
 	"github.com/syllabix/oncall/datastore/user"
 	"github.com/syllabix/oncall/service/schedule/oncall"
+	"github.com/volatiletech/null/v8"
 )
 
 var (
@@ -27,13 +30,14 @@ type Manager interface {
 	EndShift(scheduleID int) (oncall.Schedule, error)
 }
 
-func NewManager(db schedule.Store, users user.Store) Manager {
-	return &manager{db, users}
+func NewManager(db schedule.Store, users user.Store, shifts shift.Store) Manager {
+	return &manager{db, users, shifts}
 }
 
 type manager struct {
-	db    schedule.Store
-	users user.Store
+	db     schedule.Store
+	users  user.Store
+	shifts shift.Store
 }
 
 func (m *manager) Create(sched oncall.Schedule) (oncall.Schedule, error) {
@@ -79,15 +83,11 @@ func (m *manager) GetActiveShift(channelID string) (oncall.Shift, error) {
 		return oncall.Shift{}, fmt.Errorf("failed to retrieve active on call shift: %w", err)
 	}
 
-	now := time.Now()
-	if now.Before(schedule.StartTime) || now.After(schedule.EndTime) {
+	if isAfterHours(schedule) {
 		return oncall.Shift{}, ErrNoActiveShift
 	}
 
-	weekday := now.Weekday()
-	if schedule.WeekdaysOnly &&
-		(weekday == time.Saturday ||
-			weekday == time.Sunday) {
+	if schedule.WeekdaysOnly && is.TheWeekend() {
 		return oncall.Shift{}, ErrNoActiveShift
 	}
 
@@ -118,25 +118,28 @@ func (m *manager) StartShift(scheduleID int) (oncall.Schedule, error) {
 			fmt.Errorf("failed to retrieve on call schedule: %w", err)
 	}
 
-	// next := nextShift(schedule.ActiveShift.String, schedule.Shifts)
-	// if len(next) < 1 {
-	// 	return asSchedule(schedule), nil
-	// }
+	if len(schedule.R.Shifts) < 1 {
+		return oncall.Schedule{},
+			errors.New("there are no shifts setup for this schedule")
+	}
 
-	// user, err := m.users.GetByID(next)
-	// if err != nil {
-	// 	return oncall.Schedule{}, fmt.Errorf("failed to get user for next shift: %w", err)
-	// }
+	current, next := nextShiftFrom(schedule)
 
-	// schedule.ActiveShift = null.StringFrom(next)
-	// _, err = m.db.Update(schedule)
-	// if err != nil {
-	// 	return oncall.Schedule{}, fmt.Errorf("failed to update schedule: %w", err)
-	// }
+	current.Status = null.StringFromPtr(nil)
+	current.StartedAt = null.TimeFromPtr(nil)
+
+	next.Status = null.StringFrom(model.ShiftStatusActive)
+	next.StartedAt = null.TimeFrom(time.Now())
+
+	err = m.shifts.Update(context.TODO(), current, next)
+	if err != nil {
+		return oncall.Schedule{},
+			fmt.Errorf("failed to update on call schedule shifts: %w", err)
+	}
 
 	sched := asSchedule(schedule)
 	sched.ActiveShift = &oncall.UserOnDuty{
-		// SlackHandle: user.SlackHandle,
+		SlackHandle: next.R.User.SlackHandle,
 	}
 
 	return sched, nil
@@ -149,18 +152,16 @@ func (m *manager) EndShift(scheduleID int) (oncall.Schedule, error) {
 			fmt.Errorf("failed to retrieve on call schedule: %w", err)
 	}
 
-	// if schedule.ActiveShift.IsZero() {
-	// 	return asSchedule(schedule), nil
-	// }
+	if len(schedule.R.Shifts) < 1 {
+		return oncall.Schedule{},
+			errors.New("there are no shifts setup for this schedule")
+	}
 
-	// user, err := m.users.GetByID(schedule.ActiveShift.String)
-	// if err != nil {
-	// 	return oncall.Schedule{}, fmt.Errorf("failed to get user for shift end: %w", err)
-	// }
+	current, _ := nextShiftFrom(schedule)
 
 	sched := asSchedule(schedule)
 	sched.ActiveShift = &oncall.UserOnDuty{
-		// SlackHandle: user.SlackHandle,
+		SlackHandle: current.R.User.SlackHandle,
 	}
 
 	return sched, nil

@@ -79,8 +79,9 @@ func Test_nextShift(t *testing.T) {
 	}
 }
 
-func Test_nextFiveShifts(t *testing.T) {
+func Test_nextShifts(t *testing.T) {
 	type args struct {
+		count    int
 		schedule model.Schedule
 	}
 	tests := []struct {
@@ -89,8 +90,9 @@ func Test_nextFiveShifts(t *testing.T) {
 		wantShifts []string
 	}{
 		{
-			name: "should_fetch_next_five_shifts",
+			name: "should_fetch_next_shifts",
 			args: args{
+				count: 5,
 				schedule: model.Schedule{
 					ActiveShift: null.StringFrom("55"),
 					Shifts:      types.StringArray{"11", "22", "33", "44", "55", "66", "77"},
@@ -99,28 +101,31 @@ func Test_nextFiveShifts(t *testing.T) {
 			wantShifts: []string{"66", "77", "11", "22", "33"},
 		},
 		{
-			name: "should_fetch_next_five_shifts",
+			name: "should_fetch_next_shifts",
 			args: args{
+				count: 10,
 				schedule: model.Schedule{
 					ActiveShift: null.StringFrom("77"),
 					Shifts:      types.StringArray{"11", "22", "33", "44", "55", "66", "77"},
 				},
 			},
-			wantShifts: []string{"11", "22", "33", "44", "55"},
+			wantShifts: []string{"11", "22", "33", "44", "55", "66", "77", "11", "22", "33"},
 		},
 		{
-			name: "should_fetch_next_five_shifts",
+			name: "should_fetch_next_shifts",
 			args: args{
+				count: 1,
 				schedule: model.Schedule{
 					ActiveShift: null.StringFrom("22"),
 					Shifts:      types.StringArray{"11", "22", "33"},
 				},
 			},
-			wantShifts: []string{"33", "11", "22", "33", "11"},
+			wantShifts: []string{"33"},
 		},
 		{
-			name: "should_fetch_next_five_shifts",
+			name: "should_fetch_next_shifts",
 			args: args{
+				count: 5,
 				schedule: model.Schedule{
 					Shifts: types.StringArray{"11", "22", "33"},
 				},
@@ -130,8 +135,8 @@ func Test_nextFiveShifts(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotShifts := nextFiveShifts(tt.args.schedule); !reflect.DeepEqual(gotShifts, tt.wantShifts) {
-				t.Errorf("nextFiveShifts() = %v, want %v", gotShifts, tt.wantShifts)
+			if gotShifts := nextShifts(tt.args.count, tt.args.schedule); !reflect.DeepEqual(gotShifts, tt.wantShifts) {
+				t.Errorf("nextShifts() = %v, want %v", gotShifts, tt.wantShifts)
 			}
 		})
 	}

@@ -28,7 +28,7 @@ func nextShift(activeShift string, shifts []string) string {
 	return ""
 }
 
-func nextFiveShifts(schedule model.Schedule) (shifts []string) {
+func nextShifts(count int, schedule model.Schedule) (shifts []string) {
 
 	var idx int
 
@@ -42,7 +42,7 @@ func nextFiveShifts(schedule model.Schedule) (shifts []string) {
 		}
 	}
 
-	for len(shifts) < 5 {
+	for len(shifts) < count {
 		if idx > len(schedule.Shifts)-1 {
 			idx = 0
 		}
@@ -53,10 +53,16 @@ func nextFiveShifts(schedule model.Schedule) (shifts []string) {
 	return shifts
 }
 
-func asShifts(users []model.User, schedule model.Schedule) (shifts []oncall.Shift) {
-	day := time.Now().Add(time.Hour * 24)
+func asShifts(users []model.User, orderUserIDs []string, schedule model.Schedule) (shifts []oncall.Shift) {
+	now := time.Now()
+	day := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(time.Hour * 24)
 
+	userMap := make(map[string]model.User)
 	for _, user := range users {
+		userMap[user.ID] = user
+	}
+
+	for _, userID := range orderUserIDs {
 		if schedule.WeekdaysOnly {
 			switch day.Weekday() {
 			case time.Saturday:
@@ -66,6 +72,8 @@ func asShifts(users []model.User, schedule model.Schedule) (shifts []oncall.Shif
 			}
 		}
 
+		user := userMap[userID]
+
 		shifts = append(shifts, oncall.Shift{
 			UserID:      user.ID,
 			SlackHandle: user.SlackHandle,
@@ -74,6 +82,7 @@ func asShifts(users []model.User, schedule model.Schedule) (shifts []oncall.Shif
 			StartTime:   time.Date(day.Year(), day.Month(), day.Day(), schedule.StartTime.Hour(), 0, 0, 0, time.UTC),
 			EndTime:     time.Date(day.Year(), day.Month(), day.Day(), schedule.EndTime.Hour(), 0, 0, 0, time.UTC),
 		})
+
 		day = day.Add(time.Hour * 24)
 	}
 

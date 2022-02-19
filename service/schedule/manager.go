@@ -66,13 +66,13 @@ func (m *manager) GetNextShifts(channelID string) ([]oncall.Shift, error) {
 		return nil, fmt.Errorf("failed to retrieve on call schedule for channel id: %w", err)
 	}
 
-	userIDs := nextFiveShifts(schedule)
+	userIDs := nextShifts(7, schedule)
 	users, err := m.users.GetAll(userIDs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch users for upcoming shifts: %w", err)
 	}
 
-	return asShifts(users, schedule), nil
+	return asShifts(users, userIDs, schedule), nil
 }
 
 func (m *manager) GetActiveShift(channelID string) (oncall.Shift, error) {
@@ -82,7 +82,7 @@ func (m *manager) GetActiveShift(channelID string) (oncall.Shift, error) {
 	}
 
 	now := time.Now()
-	if now.Before(schedule.StartTime) && now.After(schedule.EndTime) {
+	if now.Before(schedule.StartTime) || now.After(schedule.EndTime) {
 		return oncall.Shift{}, ErrNoActiveShift
 	}
 

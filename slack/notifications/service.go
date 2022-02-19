@@ -67,7 +67,7 @@ func (s *service) Schedule(schedule oncall.Schedule) error {
 	}
 
 	s.scheduler.Cron(startExpr).Do(func() { s.startShift(schedule.ID) })
-	s.scheduler.Cron(endExpr).Do(func() { s.startShift(schedule.ID) })
+	s.scheduler.Cron(endExpr).Do(func() { s.endShift(schedule.ID) })
 	s.log.Info("on call shifts have been scheduled",
 		zap.String("schedule-id", schedule.ID),
 		zap.String("shift-start", startExpr),

@@ -15,7 +15,7 @@
 .cache 
 
 # Configuration
-.env
+.env*
 
 # Slack Manifest
 manifest.yml

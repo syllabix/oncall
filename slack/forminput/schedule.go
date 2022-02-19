@@ -5,6 +5,9 @@ const (
 	CreateScheduleName      = "schedule_name_input_block"
 	CreateScheduleNameInput = "schedule_name_input"
 
+	CreateScheduleWeekdaysOnly      = "weekdays_only_input_block"
+	CreateScheduleWeekdaysOnlyInput = "weekdays_only_input"
+
 	CreateScheduleStartTime      = "start_time_input_block"
 	CreateScheduleStartTimeInput = "start_time_input"
 

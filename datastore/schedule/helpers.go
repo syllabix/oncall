@@ -1,22 +1,30 @@
 package schedule
 
-import "github.com/syllabix/oncall/datastore/model"
+import (
+	"github.com/syllabix/oncall/common/is"
+	"github.com/syllabix/oncall/datastore/model"
+)
 
-func uniqueIdsFrom(users []model.User, in model.Schedule) (ids []string) {
-
-	set := make(map[string]struct{})
-
-	for _, id := range in.Shifts {
-		set[id] = struct{}{}
+func setActiveShift(schedule *model.Schedule) bool {
+	if schedule.WeekdaysOnly && is.TheWeekend() {
+		return false
 	}
 
-	for _, user := range users {
-		_, contains := set[user.ID]
-		if contains {
-			continue
+	for _, shift := range schedule.R.Shifts {
+		if shift.Status.String == model.ShiftStatusActive {
+			return false
 		}
-
-		ids = append(ids, user.ID)
 	}
-	return
+
+	return true
+}
+
+func asShifts(scheduleID int, users model.UserSlice) (shifts model.ShiftSlice) {
+	for _, user := range users {
+		shifts = append(shifts, &model.Shift{
+			UserID:     user.ID,
+			ScheduleID: scheduleID,
+		})
+	}
+	return shifts
 }

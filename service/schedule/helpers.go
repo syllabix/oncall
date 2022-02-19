@@ -7,83 +7,87 @@ import (
 	"github.com/syllabix/oncall/service/schedule/oncall"
 )
 
-func nextShift(activeShift string, shifts []string) string {
+func arrange(shifts model.ShiftSlice) (active *model.Shift, ordered model.ShiftSlice) {
 	if len(shifts) < 1 {
-		return ""
+		return nil, nil
 	}
 
-	if activeShift == "" {
-		return shifts[0]
-	}
-
+	idx := -1
 	for i, shift := range shifts {
-		if shift == activeShift {
-			if len(shifts) == i+1 {
-				return shifts[0]
-			}
-			return shifts[i+1]
+		if shift.Status.String == model.ShiftStatusActive {
+			idx = i + 1
+			active = shift
+			break
 		}
 	}
 
-	return ""
-}
-
-func nextShifts(count int, schedule model.Schedule) (shifts []string) {
-
-	var idx int
-
-	if schedule.ActiveShift.IsZero() {
-		idx = 0
-	} else {
-		for i, id := range schedule.Shifts {
-			if id == schedule.ActiveShift.String {
-				idx = i + 1
-			}
-		}
+	// there are no active schedules yet
+	// let's set the started at time to now
+	// so when we compute the calendar we have a valid
+	// date to start from
+	if idx == -1 {
+		shifts[0].StartedAt.Time = time.Now()
+		return shifts[0], shifts
 	}
 
-	for len(shifts) < count {
-		if idx > len(schedule.Shifts)-1 {
+	if idx == len(shifts) {
+		return active, shifts
+	}
+
+	numShifts := len(shifts)
+	ordered = make(model.ShiftSlice, 0, numShifts)
+	for len(ordered) != numShifts {
+		if idx > len(shifts)-1 {
 			idx = 0
 		}
-		shifts = append(shifts, schedule.Shifts[idx])
+		ordered = append(ordered, shifts[idx])
 		idx++
 	}
 
-	return shifts
+	return active, ordered
 }
 
-func asShifts(users []model.User, orderUserIDs []string, schedule model.Schedule) (shifts []oncall.Shift) {
-	now := time.Now()
-	day := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(time.Hour * 24)
-
-	userMap := make(map[string]model.User)
-	for _, user := range users {
-		userMap[user.ID] = user
+func calenderify(schedule *model.Schedule) (shifts []oncall.Shift) {
+	active, ordered := arrange(schedule.R.Shifts)
+	if len(ordered) < 1 {
+		return shifts
 	}
 
-	for _, userID := range orderUserIDs {
+	dayIncr := 0
+	monthIncr := 0
+
+	switch schedule.Interval {
+	case oncall.Daily:
+		dayIncr = 1
+	case oncall.Weekly:
+		dayIncr = 7
+	case oncall.BiWeekly:
+		dayIncr = 14
+	case oncall.Monthy:
+		monthIncr = 1
+	}
+
+	start := active.StartedAt.Time.AddDate(0, monthIncr, dayIncr)
+	for _, shift := range ordered {
 		if schedule.WeekdaysOnly {
-			switch day.Weekday() {
+			switch start.Weekday() {
 			case time.Saturday:
-				day = day.Add(time.Hour * 48)
+				start = start.AddDate(0, 0, 2)
 			case time.Sunday:
-				day = day.Add(time.Hour * 24)
+				start = start.AddDate(0, 0, 1)
 			}
 		}
-
-		user := userMap[userID]
-
+		user := shift.R.User
 		shifts = append(shifts, oncall.Shift{
 			UserID:      user.ID,
 			SlackHandle: user.SlackHandle,
 			FirstName:   user.FirstName,
 			LastName:    user.LastName,
-			StartTime:   time.Date(day.Year(), day.Month(), day.Day(), schedule.StartTime.Hour(), 0, 0, 0, time.UTC),
-			EndTime:     time.Date(day.Year(), day.Month(), day.Day(), schedule.EndTime.Hour(), 0, 0, 0, time.UTC),
+			StartTime:   time.Date(start.Year(), start.Month(), start.Day(), schedule.StartTime.Hour(), 0, 0, 0, time.UTC),
+			EndTime:     time.Date(start.Year(), start.Month(), start.Day(), schedule.EndTime.Hour(), 0, 0, 0, time.UTC),
 		})
 
-		day = day.Add(time.Hour * 24)
+		start = start.AddDate(0, monthIncr, dayIncr)
 	}
 
 	return shifts

@@ -69,7 +69,7 @@ func (s *service) Schedule(schedule oncall.Schedule) error {
 	s.scheduler.Cron(startExpr).Do(func() { s.startShift(schedule.ID) })
 	s.scheduler.Cron(endExpr).Do(func() { s.endShift(schedule.ID) })
 	s.log.Info("on call shifts have been scheduled",
-		zap.String("schedule-id", schedule.ID),
+		zap.Int("schedule-id", schedule.ID),
 		zap.String("shift-start", startExpr),
 		zap.String("shift-end", startExpr),
 	)
@@ -85,12 +85,12 @@ func (s *service) Stop() {
 	s.scheduler.Stop()
 }
 
-func (s *service) startShift(scheduleID string) error {
+func (s *service) startShift(scheduleID int) error {
 	sched, err := s.manager.StartShift(scheduleID)
 	if err != nil {
 		s.log.Error("an issue occured while starting a shift",
 			zap.Error(err),
-			zap.String("schedule-id", scheduleID),
+			zap.Int("schedule-id", scheduleID),
 		)
 	}
 
@@ -98,7 +98,7 @@ func (s *service) startShift(scheduleID string) error {
 		return nil
 	}
 
-	eod := "eod " + sched.ActiveShift.SlackHandle
+	eod := sched.ActiveShift.SlackHandle
 	_, err = s.client.SetTopicOfConversation(sched.ChannelID, sched.Name+": "+eod)
 	if err != nil {
 		s.log.Error("failed to update channel with shift start",
@@ -109,12 +109,12 @@ func (s *service) startShift(scheduleID string) error {
 	return nil
 }
 
-func (s *service) endShift(scheduleID string) error {
+func (s *service) endShift(scheduleID int) error {
 	sched, err := s.manager.EndShift(scheduleID)
 	if err != nil {
 		s.log.Error("an issue occured while starting a shift",
 			zap.Error(err),
-			zap.String("schedule-id", scheduleID),
+			zap.Int("schedule-id", scheduleID),
 		)
 	}
 
@@ -135,7 +135,7 @@ func (s *service) endShift(scheduleID string) error {
 			zap.String("channel-id", sched.ChannelID))
 	}
 
-	_, err = s.client.SetTopicOfConversation(sched.ChannelID, sched.Name+": :no_bell:")
+	_, err = s.client.SetTopicOfConversation(sched.ChannelID, sched.Name+": :sleeping:")
 	if err != nil {
 		s.log.Error("failed to update channel with shift end",
 			zap.Error(err),

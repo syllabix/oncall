@@ -1,14 +1,12 @@
 package add
 
 import (
-	"github.com/google/uuid"
 	"github.com/slack-go/slack"
 	"github.com/syllabix/oncall/datastore/model"
 )
 
-func toUserModel(user *slack.User, handle string) model.User {
-	return model.User{
-		ID:          uuid.NewString(),
+func toUserModel(user *slack.User, handle string) *model.User {
+	return &model.User{
 		SlackID:     user.ID,
 		SlackHandle: handle,
 		Email:       user.Profile.Email,

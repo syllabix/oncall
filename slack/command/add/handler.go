@@ -1,6 +1,7 @@
 package add
 
 import (
+	"context"
 	"errors"
 
 	"github.com/slack-go/slack"
@@ -12,6 +13,7 @@ import (
 var (
 	ErrInvalidInput        = errors.New("invalid input for add - one or more @ user mentions are required")
 	ErrNoAvailableSchedule = errors.New("there is no available schedule to add a user to")
+	ErrUserAlreadyAdded    = errors.New("one or more of the provided users are already added to the schedule")
 )
 
 type Result struct {
@@ -39,7 +41,7 @@ func (h *handler) AddToSchedule(cmd slack.SlashCommand) error {
 		return ErrInvalidInput
 	}
 
-	var usrModels []model.User
+	var usrModels model.UserSlice
 	for _, user := range users {
 		usr, err := h.client.GetUserInfo(user.ID)
 		if err != nil {
@@ -48,20 +50,24 @@ func (h *handler) AddToSchedule(cmd slack.SlashCommand) error {
 		usrModels = append(usrModels, toUserModel(usr, user.HandleID))
 	}
 
-	result, err := h.scheduler.AddToSchedule(cmd.ChannelID, usrModels)
-	if err != nil {
-		if errors.Is(err, schedule.ErrNotFound) {
-			return ErrNoAvailableSchedule
+	result, err := h.scheduler.AddToSchedule(context.TODO(), cmd.ChannelID, usrModels)
+	switch {
+	case err == nil:
+		if result.NewActiveShift != nil {
+			// ignore errors for now - perhaps retry if this fails?
+			h.client.SetTopicOfConversation(cmd.ChannelID,
+				result.Schedule.Name+": "+result.NewActiveShift.SlackHandle,
+			)
 		}
+		return nil
+
+	case errors.Is(err, schedule.ErrNotFound):
+		return ErrNoAvailableSchedule
+
+	case errors.Is(err, schedule.ErrAlreadyInUse):
+		return ErrUserAlreadyAdded
+
+	default:
 		return err
 	}
-
-	if result.NewActiveShift != nil {
-		_, err = h.client.SetTopicOfConversation(cmd.ChannelID, result.Schedule.Name+": eod "+result.NewActiveShift.SlackHandle)
-		if err != nil {
-			// ignore for now - perhaps retry if this fails?
-		}
-	}
-
-	return nil
 }

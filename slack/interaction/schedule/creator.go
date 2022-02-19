@@ -34,7 +34,7 @@ func (c *creator) Create(callback slack.InteractionCallback) error {
 	sched, err := c.mapToSchedule(callback)
 	if err != nil {
 		return c.respond(callback.Channel.ID, callback.ResponseURL,
-			":warning: Please provide a name, start time, end time and rotation interval to set up a new schedule",
+			":warning: Please provide a value for all fields to setup a new schedule",
 		)
 	}
 
@@ -52,13 +52,13 @@ func (c *creator) Create(callback slack.InteractionCallback) error {
 
 	c.notifier.Schedule(sched)
 
-	_, err = c.client.SetTopicOfConversation(callback.Channel.ID, sched.Name+": no engineer on duty")
+	_, err = c.client.SetTopicOfConversation(callback.Channel.ID, sched.Name+": :sleeping:")
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	return c.respond(callback.Channel.ID, callback.ResponseURL,
-		":white_check_mark: Your schedule has been created. Add team members to the rotation with */add* command",
+		":white_check_mark: Your schedule has been created. Add team members to the rotation with the */add* command",
 	)
 }
 
@@ -84,6 +84,12 @@ func (c *creator) mapToSchedule(callback slack.InteractionCallback) (oncall.Sche
 		BlockActionState.Values[forminput.CreateScheduleName][forminput.CreateScheduleNameInput]
 	if len(name.Value) < 1 {
 		return oncall.Schedule{}, errors.New("name required")
+	}
+
+	weekdaysOnly := callback.
+		BlockActionState.Values[forminput.CreateScheduleWeekdaysOnly][forminput.CreateScheduleWeekdaysOnlyInput]
+	if len(weekdaysOnly.SelectedOption.Value) < 1 {
+		return oncall.Schedule{}, errors.New("weekdays only required")
 	}
 
 	start := callback.
@@ -121,11 +127,12 @@ func (c *creator) mapToSchedule(callback slack.InteractionCallback) (oncall.Sche
 	}
 
 	return oncall.Schedule{
-		ChannelID: callback.Channel.ID,
-		TeamID:    callback.Team.ID,
-		Name:      name.Value,
-		StartTime: startTime,
-		EndTime:   endTime,
-		Interval:  oncall.Interval(interval.SelectedOption.Value),
+		ChannelID:    callback.Channel.ID,
+		TeamID:       callback.Team.ID,
+		Name:         name.Value,
+		WeekdaysOnly: weekdaysOnly.SelectedOption.Value == "true",
+		StartTime:    startTime,
+		EndTime:      endTime,
+		Interval:     oncall.Interval(interval.SelectedOption.Value),
 	}, nil
 }

@@ -14,32 +14,26 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/volatiletech/sqlboiler/v4/queries/qmhelper"
-	"github.com/volatiletech/sqlboiler/v4/types"
 	"github.com/volatiletech/strmangle"
 )
 
 // Schedule is an object representing the database table.
 type Schedule struct {
-	ID             string            `db:"id" boil:"id" json:"id" toml:"id" yaml:"id"`
-	SlackChannelID string            `db:"slack_channel_id" boil:"slack_channel_id" json:"slack_channel_id" toml:"slack_channel_id" yaml:"slack_channel_id"`
-	TeamSlackID    string            `db:"team_slack_id" boil:"team_slack_id" json:"team_slack_id" toml:"team_slack_id" yaml:"team_slack_id"`
-	Name           string            `db:"name" boil:"name" json:"name" toml:"name" yaml:"name"`
-	Interval       string            `db:"interval" boil:"interval" json:"interval" toml:"interval" yaml:"interval"`
-	IsEnabled      bool              `db:"is_enabled" boil:"is_enabled" json:"is_enabled" toml:"is_enabled" yaml:"is_enabled"`
-	StartTime      time.Time         `db:"start_time" boil:"start_time" json:"start_time" toml:"start_time" yaml:"start_time"`
-	EndTime        time.Time         `db:"end_time" boil:"end_time" json:"end_time" toml:"end_time" yaml:"end_time"`
-	ActiveShift    null.String       `db:"active_shift" boil:"active_shift" json:"active_shift,omitempty" toml:"active_shift" yaml:"active_shift,omitempty"`
-	OverrideShift  null.String       `db:"override_shift" boil:"override_shift" json:"override_shift,omitempty" toml:"override_shift" yaml:"override_shift,omitempty"`
-	Shifts         types.StringArray `db:"shifts" boil:"shifts" json:"shifts" toml:"shifts" yaml:"shifts"`
-	WeekdaysOnly   bool              `db:"weekdays_only" boil:"weekdays_only" json:"weekdays_only" toml:"weekdays_only" yaml:"weekdays_only"`
-	CreatedAt      time.Time         `db:"created_at" boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt      time.Time         `db:"updated_at" boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
-	DeletedAt      null.Time         `db:"deleted_at" boil:"deleted_at" json:"deleted_at,omitempty" toml:"deleted_at" yaml:"deleted_at,omitempty"`
+	ID             int       `db:"id" boil:"id" json:"id" toml:"id" yaml:"id"`
+	SlackChannelID string    `db:"slack_channel_id" boil:"slack_channel_id" json:"slack_channel_id" toml:"slack_channel_id" yaml:"slack_channel_id"`
+	TeamSlackID    string    `db:"team_slack_id" boil:"team_slack_id" json:"team_slack_id" toml:"team_slack_id" yaml:"team_slack_id"`
+	Name           string    `db:"name" boil:"name" json:"name" toml:"name" yaml:"name"`
+	Interval       string    `db:"interval" boil:"interval" json:"interval" toml:"interval" yaml:"interval"`
+	IsEnabled      bool      `db:"is_enabled" boil:"is_enabled" json:"is_enabled" toml:"is_enabled" yaml:"is_enabled"`
+	EndTime        time.Time `db:"end_time" boil:"end_time" json:"end_time" toml:"end_time" yaml:"end_time"`
+	StartTime      time.Time `db:"start_time" boil:"start_time" json:"start_time" toml:"start_time" yaml:"start_time"`
+	WeekdaysOnly   bool      `db:"weekdays_only" boil:"weekdays_only" json:"weekdays_only" toml:"weekdays_only" yaml:"weekdays_only"`
+	CreatedAt      time.Time `db:"created_at" boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at" boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *scheduleR `db:"-" boil:"-" json:"-" toml:"-" yaml:"-"`
 	L scheduleL  `db:"-" boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -52,15 +46,11 @@ var ScheduleColumns = struct {
 	Name           string
 	Interval       string
 	IsEnabled      string
-	StartTime      string
 	EndTime        string
-	ActiveShift    string
-	OverrideShift  string
-	Shifts         string
+	StartTime      string
 	WeekdaysOnly   string
 	CreatedAt      string
 	UpdatedAt      string
-	DeletedAt      string
 }{
 	ID:             "id",
 	SlackChannelID: "slack_channel_id",
@@ -68,18 +58,37 @@ var ScheduleColumns = struct {
 	Name:           "name",
 	Interval:       "interval",
 	IsEnabled:      "is_enabled",
-	StartTime:      "start_time",
 	EndTime:        "end_time",
-	ActiveShift:    "active_shift",
-	OverrideShift:  "override_shift",
-	Shifts:         "shifts",
+	StartTime:      "start_time",
 	WeekdaysOnly:   "weekdays_only",
 	CreatedAt:      "created_at",
 	UpdatedAt:      "updated_at",
-	DeletedAt:      "deleted_at",
 }
 
 // Generated where
+
+type whereHelperint struct{ field string }
+
+func (w whereHelperint) EQ(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperint) NEQ(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperint) LT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperint) LTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperint) GT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperint) GTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+func (w whereHelperint) IN(slice []int) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelperint) NIN(slice []int) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
 
 type whereHelperstring struct{ field string }
 
@@ -134,113 +143,42 @@ func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
 
-type whereHelpernull_String struct{ field string }
-
-func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
-func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
-type whereHelpertypes_StringArray struct{ field string }
-
-func (w whereHelpertypes_StringArray) EQ(x types.StringArray) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.EQ, x)
-}
-func (w whereHelpertypes_StringArray) NEQ(x types.StringArray) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.NEQ, x)
-}
-func (w whereHelpertypes_StringArray) LT(x types.StringArray) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpertypes_StringArray) LTE(x types.StringArray) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpertypes_StringArray) GT(x types.StringArray) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpertypes_StringArray) GTE(x types.StringArray) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
-type whereHelpernull_Time struct{ field string }
-
-func (w whereHelpernull_Time) EQ(x null.Time) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_Time) NEQ(x null.Time) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_Time) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_Time) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
-func (w whereHelpernull_Time) LT(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_Time) LTE(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_Time) GT(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_Time) GTE(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
 var ScheduleWhere = struct {
-	ID             whereHelperstring
+	ID             whereHelperint
 	SlackChannelID whereHelperstring
 	TeamSlackID    whereHelperstring
 	Name           whereHelperstring
 	Interval       whereHelperstring
 	IsEnabled      whereHelperbool
-	StartTime      whereHelpertime_Time
 	EndTime        whereHelpertime_Time
-	ActiveShift    whereHelpernull_String
-	OverrideShift  whereHelpernull_String
-	Shifts         whereHelpertypes_StringArray
+	StartTime      whereHelpertime_Time
 	WeekdaysOnly   whereHelperbool
 	CreatedAt      whereHelpertime_Time
 	UpdatedAt      whereHelpertime_Time
-	DeletedAt      whereHelpernull_Time
 }{
-	ID:             whereHelperstring{field: "\"schedules\".\"id\""},
+	ID:             whereHelperint{field: "\"schedules\".\"id\""},
 	SlackChannelID: whereHelperstring{field: "\"schedules\".\"slack_channel_id\""},
 	TeamSlackID:    whereHelperstring{field: "\"schedules\".\"team_slack_id\""},
 	Name:           whereHelperstring{field: "\"schedules\".\"name\""},
 	Interval:       whereHelperstring{field: "\"schedules\".\"interval\""},
 	IsEnabled:      whereHelperbool{field: "\"schedules\".\"is_enabled\""},
-	StartTime:      whereHelpertime_Time{field: "\"schedules\".\"start_time\""},
 	EndTime:        whereHelpertime_Time{field: "\"schedules\".\"end_time\""},
-	ActiveShift:    whereHelpernull_String{field: "\"schedules\".\"active_shift\""},
-	OverrideShift:  whereHelpernull_String{field: "\"schedules\".\"override_shift\""},
-	Shifts:         whereHelpertypes_StringArray{field: "\"schedules\".\"shifts\""},
+	StartTime:      whereHelpertime_Time{field: "\"schedules\".\"start_time\""},
 	WeekdaysOnly:   whereHelperbool{field: "\"schedules\".\"weekdays_only\""},
 	CreatedAt:      whereHelpertime_Time{field: "\"schedules\".\"created_at\""},
 	UpdatedAt:      whereHelpertime_Time{field: "\"schedules\".\"updated_at\""},
-	DeletedAt:      whereHelpernull_Time{field: "\"schedules\".\"deleted_at\""},
 }
 
 // ScheduleRels is where relationship names are stored.
 var ScheduleRels = struct {
-}{}
+	Shifts string
+}{
+	Shifts: "Shifts",
+}
 
 // scheduleR is where relationships are stored.
 type scheduleR struct {
+	Shifts ShiftSlice `db:"Shifts" boil:"Shifts" json:"Shifts" toml:"Shifts" yaml:"Shifts"`
 }
 
 // NewStruct creates a new relationship struct
@@ -252,9 +190,9 @@ func (*scheduleR) NewStruct() *scheduleR {
 type scheduleL struct{}
 
 var (
-	scheduleAllColumns            = []string{"id", "slack_channel_id", "team_slack_id", "name", "interval", "is_enabled", "start_time", "end_time", "active_shift", "override_shift", "shifts", "weekdays_only", "created_at", "updated_at", "deleted_at"}
-	scheduleColumnsWithoutDefault = []string{"slack_channel_id", "team_slack_id", "name", "interval", "start_time", "end_time", "active_shift", "override_shift", "deleted_at"}
-	scheduleColumnsWithDefault    = []string{"id", "is_enabled", "shifts", "weekdays_only", "created_at", "updated_at"}
+	scheduleAllColumns            = []string{"id", "slack_channel_id", "team_slack_id", "name", "interval", "is_enabled", "end_time", "start_time", "weekdays_only", "created_at", "updated_at"}
+	scheduleColumnsWithoutDefault = []string{"slack_channel_id", "team_slack_id", "name", "interval", "end_time", "start_time", "weekdays_only"}
+	scheduleColumnsWithDefault    = []string{"id", "is_enabled", "created_at", "updated_at"}
 	schedulePrimaryKeyColumns     = []string{"id"}
 )
 
@@ -349,15 +287,180 @@ func (q scheduleQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (b
 	return count > 0, nil
 }
 
+// Shifts retrieves all the shift's Shifts with an executor.
+func (o *Schedule) Shifts(mods ...qm.QueryMod) shiftQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"shifts\".\"schedule_id\"=?", o.ID),
+	)
+
+	query := Shifts(queryMods...)
+	queries.SetFrom(query.Query, "\"shifts\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"shifts\".*"})
+	}
+
+	return query
+}
+
+// LoadShifts allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (scheduleL) LoadShifts(ctx context.Context, e boil.ContextExecutor, singular bool, maybeSchedule interface{}, mods queries.Applicator) error {
+	var slice []*Schedule
+	var object *Schedule
+
+	if singular {
+		object = maybeSchedule.(*Schedule)
+	} else {
+		slice = *maybeSchedule.(*[]*Schedule)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &scheduleR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &scheduleR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`shifts`),
+		qm.WhereIn(`shifts.schedule_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load shifts")
+	}
+
+	var resultSlice []*Shift
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice shifts")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on shifts")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for shifts")
+	}
+
+	if singular {
+		object.R.Shifts = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &shiftR{}
+			}
+			foreign.R.Schedule = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.ScheduleID {
+				local.R.Shifts = append(local.R.Shifts, foreign)
+				if foreign.R == nil {
+					foreign.R = &shiftR{}
+				}
+				foreign.R.Schedule = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// AddShifts adds the given related objects to the existing relationships
+// of the schedule, optionally inserting them as new records.
+// Appends related to o.R.Shifts.
+// Sets related.R.Schedule appropriately.
+func (o *Schedule) AddShifts(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Shift) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.ScheduleID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"shifts\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"schedule_id"}),
+				strmangle.WhereClause("\"", "\"", 2, shiftPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.UserID, rel.ScheduleID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.ScheduleID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &scheduleR{
+			Shifts: related,
+		}
+	} else {
+		o.R.Shifts = append(o.R.Shifts, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &shiftR{
+				Schedule: o,
+			}
+		} else {
+			rel.R.Schedule = o
+		}
+	}
+	return nil
+}
+
 // Schedules retrieves all the records using an executor.
 func Schedules(mods ...qm.QueryMod) scheduleQuery {
-	mods = append(mods, qm.From("\"schedules\""), qmhelper.WhereIsNull("\"schedules\".\"deleted_at\""))
+	mods = append(mods, qm.From("\"schedules\""))
 	return scheduleQuery{NewQuery(mods...)}
 }
 
 // FindSchedule retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindSchedule(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*Schedule, error) {
+func FindSchedule(ctx context.Context, exec boil.ContextExecutor, iD int, selectCols ...string) (*Schedule, error) {
 	scheduleObj := &Schedule{}
 
 	sel := "*"
@@ -365,7 +468,7 @@ func FindSchedule(ctx context.Context, exec boil.ContextExecutor, iD string, sel
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"schedules\" where \"id\"=$1 and \"deleted_at\" is null", sel,
+		"select %s from \"schedules\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
@@ -718,31 +821,13 @@ func (o *Schedule) Upsert(ctx context.Context, exec boil.ContextExecutor, update
 
 // Delete deletes a single Schedule record with an executor.
 // Delete will match against the primary key column to find the record to delete.
-func (o *Schedule) Delete(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
+func (o *Schedule) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if o == nil {
 		return 0, errors.New("model: no Schedule provided for delete")
 	}
 
-	var (
-		sql  string
-		args []interface{}
-	)
-	if hardDelete {
-		args = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), schedulePrimaryKeyMapping)
-		sql = "DELETE FROM \"schedules\" WHERE \"id\"=$1"
-	} else {
-		currTime := time.Now().In(boil.GetLocation())
-		o.DeletedAt = null.TimeFrom(currTime)
-		wl := []string{"deleted_at"}
-		sql = fmt.Sprintf("UPDATE \"schedules\" SET %s WHERE \"id\"=$2",
-			strmangle.SetParamNames("\"", "\"", 1, wl),
-		)
-		valueMapping, err := queries.BindMapping(scheduleType, scheduleMapping, append(wl, schedulePrimaryKeyColumns...))
-		if err != nil {
-			return 0, err
-		}
-		args = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), valueMapping)
-	}
+	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), schedulePrimaryKeyMapping)
+	sql := "DELETE FROM \"schedules\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -763,17 +848,12 @@ func (o *Schedule) Delete(ctx context.Context, exec boil.ContextExecutor, hardDe
 }
 
 // DeleteAll deletes all matching rows.
-func (q scheduleQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
+func (q scheduleQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if q.Query == nil {
 		return 0, errors.New("model: no scheduleQuery provided for delete all")
 	}
 
-	if hardDelete {
-		queries.SetDelete(q.Query)
-	} else {
-		currTime := time.Now().In(boil.GetLocation())
-		queries.SetUpdate(q.Query, M{"deleted_at": currTime})
-	}
+	queries.SetDelete(q.Query)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
@@ -789,36 +869,19 @@ func (q scheduleQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor,
 }
 
 // DeleteAll deletes all rows in the slice, using an executor.
-func (o ScheduleSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
+func (o ScheduleSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
 
-	var (
-		sql  string
-		args []interface{}
-	)
-	if hardDelete {
-		for _, obj := range o {
-			pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), schedulePrimaryKeyMapping)
-			args = append(args, pkeyArgs...)
-		}
-		sql = "DELETE FROM \"schedules\" WHERE " +
-			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, schedulePrimaryKeyColumns, len(o))
-	} else {
-		currTime := time.Now().In(boil.GetLocation())
-		for _, obj := range o {
-			pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), schedulePrimaryKeyMapping)
-			args = append(args, pkeyArgs...)
-			obj.DeletedAt = null.TimeFrom(currTime)
-		}
-		wl := []string{"deleted_at"}
-		sql = fmt.Sprintf("UPDATE \"schedules\" SET %s WHERE "+
-			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 2, schedulePrimaryKeyColumns, len(o)),
-			strmangle.SetParamNames("\"", "\"", 1, wl),
-		)
-		args = append([]interface{}{currTime}, args...)
+	var args []interface{}
+	for _, obj := range o {
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), schedulePrimaryKeyMapping)
+		args = append(args, pkeyArgs...)
 	}
+
+	sql := "DELETE FROM \"schedules\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, schedulePrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -865,8 +928,7 @@ func (o *ScheduleSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor
 	}
 
 	sql := "SELECT \"schedules\".* FROM \"schedules\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, schedulePrimaryKeyColumns, len(*o)) +
-		"and \"deleted_at\" is null"
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, schedulePrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
@@ -881,9 +943,9 @@ func (o *ScheduleSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor
 }
 
 // ScheduleExists checks if the Schedule row exists.
-func ScheduleExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
+func ScheduleExists(ctx context.Context, exec boil.ContextExecutor, iD int) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"schedules\" where \"id\"=$1 and \"deleted_at\" is null limit 1)"
+	sql := "select exists(select 1 from \"schedules\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)

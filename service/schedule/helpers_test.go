@@ -1,143 +1,308 @@
 package schedule
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/syllabix/oncall/datastore/model"
 	"github.com/volatiletech/null/v8"
-	"github.com/volatiletech/sqlboiler/v4/types"
 )
 
-func Test_nextShift(t *testing.T) {
+func Test_arrange(t *testing.T) {
 	type args struct {
-		activeShift string
-		shifts      []string
+		shifts model.ShiftSlice
+	}
+	type expected struct {
+		active  *model.Shift
+		ordered model.ShiftSlice
 	}
 	tests := []struct {
 		name string
 		args args
-		want string
+		want expected
 	}{
 		{
-			name: "moves_to_next_shift",
+			name: "returns_shifts_properly_ordered",
 			args: args{
-				activeShift: "123",
-				shifts: []string{
-					"234",
-					"345",
-					"456",
-					"262",
-					"123",
-					"897",
+				shifts: model.ShiftSlice{
+					{
+						SequenceID: 7,
+						UserID:     100,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 10,
+						UserID:     101,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 13,
+						UserID:     102,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 29,
+						UserID:     103,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusActive),
+					},
+					{
+						SequenceID: 32,
+						UserID:     104,
+						ScheduleID: 999,
+					},
 				},
 			},
-			want: "897",
+			want: expected{
+				active: &model.Shift{
+					SequenceID: 29,
+					UserID:     103,
+					ScheduleID: 999,
+					Status:     null.StringFrom(model.ShiftStatusActive),
+				},
+				ordered: model.ShiftSlice{
+					{
+						SequenceID: 32,
+						UserID:     104,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 7,
+						UserID:     100,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 10,
+						UserID:     101,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 13,
+						UserID:     102,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 29,
+						UserID:     103,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusActive),
+					},
+				},
+			},
 		},
 		{
-			name: "moves_to_next_shift_at_beginning_of_shift_list",
+			name: "returns_shifts_properly_ordered",
 			args: args{
-				activeShift: "897",
-				shifts: []string{
-					"234",
-					"345",
-					"456",
-					"262",
-					"123",
-					"897",
+				shifts: model.ShiftSlice{
+					{
+						SequenceID: 7,
+						UserID:     100,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 10,
+						UserID:     101,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusActive),
+					},
+					{
+						SequenceID: 13,
+						UserID:     102,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 29,
+						UserID:     103,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 32,
+						UserID:     104,
+						ScheduleID: 999,
+					},
 				},
 			},
-			want: "234",
+			want: expected{
+				active: &model.Shift{
+					SequenceID: 10,
+					UserID:     101,
+					ScheduleID: 999,
+					Status:     null.StringFrom(model.ShiftStatusActive),
+				},
+				ordered: model.ShiftSlice{
+					{
+						SequenceID: 13,
+						UserID:     102,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 29,
+						UserID:     103,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 32,
+						UserID:     104,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 7,
+						UserID:     100,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 10,
+						UserID:     101,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusActive),
+					},
+				},
+			},
 		},
 		{
-			name: "only_one_soldier",
+			name: "returns_shifts_properly_ordered",
 			args: args{
-				activeShift: "234",
-				shifts: []string{
-					"234",
+				shifts: model.ShiftSlice{
+					{
+						SequenceID: 7,
+						UserID:     100,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusActive),
+					},
+					{
+						SequenceID: 10,
+						UserID:     101,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 13,
+						UserID:     102,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 29,
+						UserID:     103,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 32,
+						UserID:     104,
+						ScheduleID: 999,
+					},
 				},
 			},
-			want: "234",
+			want: expected{
+				active: &model.Shift{
+					SequenceID: 7,
+					UserID:     100,
+					ScheduleID: 999,
+					Status:     null.StringFrom(model.ShiftStatusActive),
+				},
+				ordered: model.ShiftSlice{
+					{
+						SequenceID: 10,
+						UserID:     101,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 13,
+						UserID:     102,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 29,
+						UserID:     103,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 32,
+						UserID:     104,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 7,
+						UserID:     100,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusActive),
+					},
+				},
+			},
 		},
 		{
-			name: "nothing_setup_yet",
+			name: "returns_shifts_properly_ordered",
 			args: args{
-				activeShift: "",
-				shifts: []string{
-					"234",
+				shifts: model.ShiftSlice{
+					{
+						SequenceID: 7,
+						UserID:     100,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 10,
+						UserID:     101,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 13,
+						UserID:     102,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 29,
+						UserID:     103,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 32,
+						UserID:     104,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusActive),
+					},
 				},
 			},
-			want: "234",
+			want: expected{
+				active: &model.Shift{
+					SequenceID: 32,
+					UserID:     104,
+					ScheduleID: 999,
+					Status:     null.StringFrom(model.ShiftStatusActive),
+				},
+				ordered: model.ShiftSlice{
+					{
+						SequenceID: 7,
+						UserID:     100,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 10,
+						UserID:     101,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 13,
+						UserID:     102,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 29,
+						UserID:     103,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 32,
+						UserID:     104,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusActive),
+					},
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := nextShift(tt.args.activeShift, tt.args.shifts); got != tt.want {
-				t.Errorf("nextShift() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_nextShifts(t *testing.T) {
-	type args struct {
-		count    int
-		schedule model.Schedule
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantShifts []string
-	}{
-		{
-			name: "should_fetch_next_shifts",
-			args: args{
-				count: 5,
-				schedule: model.Schedule{
-					ActiveShift: null.StringFrom("55"),
-					Shifts:      types.StringArray{"11", "22", "33", "44", "55", "66", "77"},
-				},
-			},
-			wantShifts: []string{"66", "77", "11", "22", "33"},
-		},
-		{
-			name: "should_fetch_next_shifts",
-			args: args{
-				count: 10,
-				schedule: model.Schedule{
-					ActiveShift: null.StringFrom("77"),
-					Shifts:      types.StringArray{"11", "22", "33", "44", "55", "66", "77"},
-				},
-			},
-			wantShifts: []string{"11", "22", "33", "44", "55", "66", "77", "11", "22", "33"},
-		},
-		{
-			name: "should_fetch_next_shifts",
-			args: args{
-				count: 1,
-				schedule: model.Schedule{
-					ActiveShift: null.StringFrom("22"),
-					Shifts:      types.StringArray{"11", "22", "33"},
-				},
-			},
-			wantShifts: []string{"33"},
-		},
-		{
-			name: "should_fetch_next_shifts",
-			args: args{
-				count: 5,
-				schedule: model.Schedule{
-					Shifts: types.StringArray{"11", "22", "33"},
-				},
-			},
-			wantShifts: []string{"11", "22", "33", "11", "22"},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if gotShifts := nextShifts(tt.args.count, tt.args.schedule); !reflect.DeepEqual(gotShifts, tt.wantShifts) {
-				t.Errorf("nextShifts() = %v, want %v", gotShifts, tt.wantShifts)
-			}
+			active, ordered := arrange(tt.args.shifts)
+			assert.EqualValues(t, tt.want.active, active)
+			assert.EqualValues(t, tt.want.ordered, ordered)
 		})
 	}
 }

@@ -52,3 +52,8 @@ func makeCacheKey(cols boil.Columns, nzDefaults []string) string {
 }
 
 // Enum values for shift_interval are not proper Go identifiers, cannot emit constants
+// Enum values for shift_status
+const (
+	ShiftStatusActive   = "active"
+	ShiftStatusOverride = "override"
+)

@@ -1,6 +1,7 @@
 package schedule
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -9,10 +10,10 @@ import (
 	"github.com/syllabix/oncall/datastore/schedule"
 	"github.com/syllabix/oncall/datastore/user"
 	"github.com/syllabix/oncall/service/schedule/oncall"
-	"github.com/volatiletech/null/v8"
 )
 
 var (
+	ErrNotFound      = errors.New("schedule not found")
 	ErrAlreadyExists = errors.New("there is already a schedule configured for this channel")
 	ErrNoActiveShift = errors.New("there is no active shift for this schedule")
 )
@@ -22,8 +23,8 @@ type Manager interface {
 	GetAll() ([]oncall.Schedule, error)
 	GetActiveShift(channelID string) (oncall.Shift, error)
 	GetNextShifts(channelID string) ([]oncall.Shift, error)
-	StartShift(scheduleID string) (oncall.Schedule, error)
-	EndShift(scheduleID string) (oncall.Schedule, error)
+	StartShift(scheduleID int) (oncall.Schedule, error)
+	EndShift(scheduleID int) (oncall.Schedule, error)
 }
 
 func NewManager(db schedule.Store, users user.Store) Manager {
@@ -36,7 +37,7 @@ type manager struct {
 }
 
 func (m *manager) Create(sched oncall.Schedule) (oncall.Schedule, error) {
-	result, err := m.db.Create(asModel(sched))
+	result, err := m.db.Create(context.TODO(), asModel(sched))
 	if err != nil {
 		if errors.Is(err, schedule.ErrAlreadyInUse) {
 			return oncall.Schedule{}, ErrAlreadyExists
@@ -47,36 +48,33 @@ func (m *manager) Create(sched oncall.Schedule) (oncall.Schedule, error) {
 }
 
 func (m *manager) GetAll() ([]oncall.Schedule, error) {
-	results, err := m.db.GetEnabledSchedules()
+	results, err := m.db.GetEnabledSchedules(context.TODO())
 	if err != nil {
 		return nil, err
 	}
 
 	var schedules []oncall.Schedule
 	for _, result := range results {
-		schedules = append(schedules, asSchedule(*result))
+		schedules = append(schedules, asSchedule(result))
 	}
 
 	return schedules, nil
 }
 
 func (m *manager) GetNextShifts(channelID string) ([]oncall.Shift, error) {
-	schedule, err := m.db.GetByChannelID(channelID)
+	sched, err := m.db.GetByChannelID(context.Background(), channelID)
 	if err != nil {
+		if errors.Is(err, schedule.ErrNotFound) {
+			return nil, ErrNotFound
+		}
 		return nil, fmt.Errorf("failed to retrieve on call schedule for channel id: %w", err)
 	}
 
-	userIDs := nextShifts(7, schedule)
-	users, err := m.users.GetAll(userIDs...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch users for upcoming shifts: %w", err)
-	}
-
-	return asShifts(users, userIDs, schedule), nil
+	return calenderify(sched), nil
 }
 
 func (m *manager) GetActiveShift(channelID string) (oncall.Shift, error) {
-	schedule, err := m.db.GetByChannelID(channelID)
+	schedule, err := m.db.GetByChannelID(context.TODO(), channelID)
 	if err != nil {
 		return oncall.Shift{}, fmt.Errorf("failed to retrieve active on call shift: %w", err)
 	}
@@ -86,13 +84,23 @@ func (m *manager) GetActiveShift(channelID string) (oncall.Shift, error) {
 		return oncall.Shift{}, ErrNoActiveShift
 	}
 
-	if schedule.ActiveShift.IsZero() {
+	weekday := now.Weekday()
+	if schedule.WeekdaysOnly &&
+		(weekday == time.Saturday ||
+			weekday == time.Sunday) {
 		return oncall.Shift{}, ErrNoActiveShift
 	}
 
-	user, err := m.users.GetByID(schedule.ActiveShift.String)
-	if err != nil {
-		return oncall.Shift{}, fmt.Errorf("failed to retrieve user for active shift: %w", err)
+	var user *model.User
+loop:
+	for _, shift := range schedule.R.Shifts {
+		switch shift.Status.String {
+		case model.ShiftStatusActive:
+			user = shift.R.User
+		case model.ShiftStatusOverride:
+			user = shift.R.User
+			break loop
+		}
 	}
 
 	return oncall.Shift{
@@ -103,73 +111,74 @@ func (m *manager) GetActiveShift(channelID string) (oncall.Shift, error) {
 	}, nil
 }
 
-func (m *manager) StartShift(scheduleID string) (oncall.Schedule, error) {
-	schedule, err := m.db.GetByID(scheduleID)
+func (m *manager) StartShift(scheduleID int) (oncall.Schedule, error) {
+	schedule, err := m.db.GetByID(context.TODO(), scheduleID)
 	if err != nil {
 		return oncall.Schedule{},
 			fmt.Errorf("failed to retrieve on call schedule: %w", err)
 	}
 
-	next := nextShift(schedule.ActiveShift.String, schedule.Shifts)
-	if len(next) < 1 {
-		return asSchedule(schedule), nil
-	}
+	// next := nextShift(schedule.ActiveShift.String, schedule.Shifts)
+	// if len(next) < 1 {
+	// 	return asSchedule(schedule), nil
+	// }
 
-	user, err := m.users.GetByID(next)
-	if err != nil {
-		return oncall.Schedule{}, fmt.Errorf("failed to get user for next shift: %w", err)
-	}
+	// user, err := m.users.GetByID(next)
+	// if err != nil {
+	// 	return oncall.Schedule{}, fmt.Errorf("failed to get user for next shift: %w", err)
+	// }
 
-	schedule.ActiveShift = null.StringFrom(next)
-	_, err = m.db.Update(schedule)
-	if err != nil {
-		return oncall.Schedule{}, fmt.Errorf("failed to update schedule: %w", err)
-	}
+	// schedule.ActiveShift = null.StringFrom(next)
+	// _, err = m.db.Update(schedule)
+	// if err != nil {
+	// 	return oncall.Schedule{}, fmt.Errorf("failed to update schedule: %w", err)
+	// }
 
 	sched := asSchedule(schedule)
 	sched.ActiveShift = &oncall.UserOnDuty{
-		SlackHandle: user.SlackHandle,
+		// SlackHandle: user.SlackHandle,
 	}
 
 	return sched, nil
 }
 
-func (m *manager) EndShift(scheduleID string) (oncall.Schedule, error) {
-	schedule, err := m.db.GetByID(scheduleID)
+func (m *manager) EndShift(scheduleID int) (oncall.Schedule, error) {
+	schedule, err := m.db.GetByID(context.TODO(), scheduleID)
 	if err != nil {
 		return oncall.Schedule{},
 			fmt.Errorf("failed to retrieve on call schedule: %w", err)
 	}
 
-	if schedule.ActiveShift.IsZero() {
-		return asSchedule(schedule), nil
-	}
+	// if schedule.ActiveShift.IsZero() {
+	// 	return asSchedule(schedule), nil
+	// }
 
-	user, err := m.users.GetByID(schedule.ActiveShift.String)
-	if err != nil {
-		return oncall.Schedule{}, fmt.Errorf("failed to get user for shift end: %w", err)
-	}
+	// user, err := m.users.GetByID(schedule.ActiveShift.String)
+	// if err != nil {
+	// 	return oncall.Schedule{}, fmt.Errorf("failed to get user for shift end: %w", err)
+	// }
 
 	sched := asSchedule(schedule)
 	sched.ActiveShift = &oncall.UserOnDuty{
-		SlackHandle: user.SlackHandle,
+		// SlackHandle: user.SlackHandle,
 	}
 
 	return sched, nil
 }
 
-func asModel(schedule oncall.Schedule) model.Schedule {
-	return model.Schedule{
+func asModel(schedule oncall.Schedule) *model.Schedule {
+	return &model.Schedule{
 		Name:           schedule.Name,
 		TeamSlackID:    schedule.TeamID,
 		Interval:       string(schedule.Interval),
+		WeekdaysOnly:   schedule.WeekdaysOnly,
 		SlackChannelID: schedule.ChannelID,
 		StartTime:      schedule.StartTime,
 		EndTime:        schedule.EndTime,
 	}
 }
 
-func asSchedule(model model.Schedule) oncall.Schedule {
+func asSchedule(model *model.Schedule) oncall.Schedule {
 	return oncall.Schedule{
 		ID:           model.ID,
 		Name:         model.Name,

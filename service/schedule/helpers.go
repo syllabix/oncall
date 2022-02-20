@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/syllabix/oncall/datastore/model"
-	"github.com/syllabix/oncall/service/schedule/oncall"
+	"github.com/syllabix/oncall/service/oncall"
 )
 
 func nextShiftFrom(schedule *model.Schedule) (current *model.Shift, next *model.Shift) {

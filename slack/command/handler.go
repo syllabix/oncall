@@ -8,6 +8,7 @@ import (
 	"github.com/syllabix/oncall/config"
 	"github.com/syllabix/oncall/slack/command/add"
 	"github.com/syllabix/oncall/slack/command/schedule"
+	"github.com/syllabix/oncall/slack/command/withdraw"
 	"go.uber.org/zap"
 )
 
@@ -27,15 +28,17 @@ func NewHandler(
 	config config.SlackSettings,
 	adder add.Handler,
 	schedule schedule.Handler,
+	withdrawer withdraw.Handler,
 	log *zap.Logger,
 ) Handler {
-	return &handler{config, adder, schedule, log}
+	return &handler{config, adder, schedule, withdrawer, log}
 }
 
 type handler struct {
-	config   config.SlackSettings
-	adder    add.Handler
-	schedule schedule.Handler
+	config     config.SlackSettings
+	adder      add.Handler
+	schedule   schedule.Handler
+	withdrawer withdraw.Handler
 
 	log *zap.Logger
 }
@@ -68,6 +71,7 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 		}
 
 	case "/withdraw":
+		return h.withdrawer.Handle(cmd)
 
 	case "/add":
 		err := h.adder.AddToSchedule(cmd)
@@ -113,6 +117,5 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 			Title: "Unsupported slash command",
 			Text:  ":cry: Sorry - but I don't know how to handle that command yet...",
 		}, nil
-
 	}
 }

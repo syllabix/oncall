@@ -11,7 +11,7 @@ import (
 	"github.com/syllabix/oncall/datastore/schedule"
 	"github.com/syllabix/oncall/datastore/shift"
 	"github.com/syllabix/oncall/datastore/user"
-	"github.com/syllabix/oncall/service/schedule/oncall"
+	"github.com/syllabix/oncall/service/oncall"
 	"github.com/volatiletech/null/v8"
 )
 
@@ -135,7 +135,7 @@ func (m *manager) StartShift(scheduleID int) (oncall.Schedule, error) {
 	}
 
 	sched := asSchedule(schedule)
-	sched.ActiveShift = &oncall.UserOnDuty{
+	sched.ActiveShift = &oncall.Shift{
 		SlackHandle: next.R.User.SlackHandle,
 	}
 
@@ -156,7 +156,7 @@ func (m *manager) EndShift(scheduleID int) (oncall.Schedule, error) {
 	current, _ := nextShiftFrom(schedule)
 
 	sched := asSchedule(schedule)
-	sched.ActiveShift = &oncall.UserOnDuty{
+	sched.ActiveShift = &oncall.Shift{
 		SlackHandle: current.R.User.SlackHandle,
 	}
 

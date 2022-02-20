@@ -11,17 +11,14 @@ const (
 	Monthy   Interval = "monthly"
 )
 
-type UserOnDuty struct {
-	SlackHandle string
-}
-
 type Shift struct {
-	UserID      int
-	FirstName   string
-	LastName    string
-	SlackHandle string
-	StartTime   time.Time
-	EndTime     time.Time
+	UserID       int
+	FirstName    string
+	LastName     string
+	SlackHandle  string
+	ScheduleName string
+	StartTime    time.Time
+	EndTime      time.Time
 }
 
 type Schedule struct {
@@ -32,8 +29,8 @@ type Schedule struct {
 	StartTime     time.Time
 	EndTime       time.Time
 	Interval      Interval
-	ActiveShift   *UserOnDuty
-	OverrideShift *UserOnDuty
+	ActiveShift   *Shift
+	OverrideShift *Shift
 	WeekdaysOnly  bool
 	IsEnabled     bool
 	CreatedAt     time.Time

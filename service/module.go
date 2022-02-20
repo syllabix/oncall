@@ -2,12 +2,11 @@ package service
 
 import (
 	"github.com/syllabix/oncall/service/schedule"
+	"github.com/syllabix/oncall/service/shift"
 	"go.uber.org/fx"
 )
 
-// Module contains all services that power handling
-// interactions with Slack api calls
-var Module = fx.Options(
-
-	schedule.Module,
+var Module = fx.Provide(
+	shift.NewManager,
+	schedule.NewManager,
 )

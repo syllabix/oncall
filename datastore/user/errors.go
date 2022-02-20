@@ -1,19 +1,18 @@
-package shift
+package user
 
 import (
 	"database/sql"
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/pkg/errors"
 )
 
 var (
-	ErrNotFound = errors.New("the requested resource was not found")
-	ErrFatal    = errors.New("an unexpected error occurred while accessing the database")
-	ErrConflict = errors.New("the operation creates a unique constraint conflict")
+	ErrNotFound     = errors.New("the requested resource was not found")
+	ErrFatal        = errors.New("an unexpected error occurred while accessing the database")
+	ErrAlreadyInUse = errors.New("an entity has already been created for this resource type")
 )
 
 func mapErr(reason error) (err error) {
@@ -24,7 +23,7 @@ func mapErr(reason error) (err error) {
 
 	case errors.As(reason, &sqlErr):
 		if sqlErr.Code.Name() == "unique_violation" {
-			err = fmt.Errorf("%v: %w", reason, ErrConflict)
+			err = ErrAlreadyInUse
 			return
 		}
 
@@ -38,15 +37,15 @@ func mapErr(reason error) (err error) {
 	return errors.WithStack(err)
 }
 
-func failure(reason error) (err error) {
-	return mapErr(reason)
+func failure[T any](reason error) (res T, err error) {
+	return res, mapErr(reason)
 }
 
-func rollback(tx *sqlx.Tx, reason error) (err error) {
+func rollback[T any](tx *sqlx.Tx, reason error) (res T, err error) {
 	err = tx.Rollback()
 	if err != nil {
-		return mapErr(err)
+		return res, mapErr(err)
 	}
 
-	return mapErr(reason)
+	return res, mapErr(reason)
 }

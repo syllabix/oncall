@@ -24,8 +24,8 @@ CREATE TYPE shift_status AS ENUM ('active', 'override');
 
 CREATE TABLE IF NOT EXISTS shifts (
     sequence_id SERIAL,
-    user_id integer NOT NULL REFERENCES users (id),
-    schedule_id integer NOT NULL REFERENCES schedules (id),
+    user_id integer NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    schedule_id integer NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
     status shift_status NULL,
     started_at timestamp with time zone NULL,
     created_at timestamp with time zone NOT NULL DEFAULT ('now'::text)::timestamp with time zone,

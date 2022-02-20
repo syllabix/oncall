@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/slack-go/slack"
+	"github.com/syllabix/oncall/service/oncall"
 	"github.com/syllabix/oncall/service/schedule"
-	"github.com/syllabix/oncall/service/schedule/oncall"
 	"github.com/syllabix/oncall/slack/forminput"
 	"github.com/syllabix/oncall/slack/notifications"
 )

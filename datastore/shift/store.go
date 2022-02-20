@@ -29,5 +29,18 @@ func (s Store) Update(ctx context.Context, shifts ...*model.Shift) error {
 		}
 	}
 
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return failure(err)
+	}
+
+	return nil
+}
+
+func (s Store) Delete(ctx context.Context, shift *model.Shift) error {
+	_, err := shift.Delete(ctx, s.db)
+	if err != nil {
+		return failure(err)
+	}
+	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/syllabix/oncall/config"
 	"github.com/syllabix/oncall/slack/command/add"
+	"github.com/syllabix/oncall/slack/command/override"
 	"github.com/syllabix/oncall/slack/command/schedule"
 	"github.com/syllabix/oncall/slack/command/swap"
 	"github.com/syllabix/oncall/slack/command/withdraw"
@@ -31,9 +32,18 @@ func NewHandler(
 	schedule schedule.Handler,
 	withdrawer withdraw.Handler,
 	swapper swap.Handler,
+	overrider override.Handler,
 	log *zap.Logger,
 ) Handler {
-	return &handler{config, adder, schedule, withdrawer, swapper, log}
+	return &handler{
+		config,
+		adder,
+		schedule,
+		withdrawer,
+		swapper,
+		overrider,
+		log,
+	}
 }
 
 type handler struct {
@@ -42,6 +52,7 @@ type handler struct {
 	schedule   schedule.Handler
 	withdrawer withdraw.Handler
 	swapper    swap.Handler
+	overrider  override.Handler
 
 	log *zap.Logger
 }
@@ -78,6 +89,9 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 
 	case "/withdraw":
 		return h.withdrawer.Handle(cmd)
+
+	case "/override":
+		return h.overrider.Handle(cmd)
 
 	case "/add":
 		err := h.adder.AddToSchedule(cmd)

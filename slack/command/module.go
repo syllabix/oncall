@@ -2,6 +2,7 @@ package command
 
 import (
 	"github.com/syllabix/oncall/slack/command/add"
+	"github.com/syllabix/oncall/slack/command/override"
 	"github.com/syllabix/oncall/slack/command/schedule"
 	"github.com/syllabix/oncall/slack/command/swap"
 	"github.com/syllabix/oncall/slack/command/withdraw"
@@ -16,4 +17,5 @@ var Module = fx.Provide(
 	schedule.NewHandler,
 	withdraw.NewHandler,
 	swap.NewHandler,
+	override.NewHandler,
 )

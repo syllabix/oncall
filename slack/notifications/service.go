@@ -1,6 +1,7 @@
 package notifications
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -66,11 +67,12 @@ func (s *service) Schedule(schedule oncall.Schedule) error {
 		endExpr = fmt.Sprintf("1 %s * * 0-6", endhour)
 	}
 
-	s.scheduler.Every(10).Seconds().WaitForSchedule().Do(func() { s.startShift(schedule.ID) })
-	s.scheduler.Every(10).Seconds().WaitForSchedule().Do(func() {
-		time.Sleep(time.Second * 5)
-		s.endShift(schedule.ID)
-	})
+	s.scheduler.Cron(startExpr).
+		Tag(fmt.Sprintf("sched-%d-start", schedule.ID)).
+		Do(func() { s.startShift(schedule.ID) })
+	s.scheduler.Cron(endExpr).
+		Tag(fmt.Sprintf("sched-%d-end", schedule.ID)).
+		Do(func() { s.endShift(schedule.ID) })
 	s.log.Info("on call shifts have been scheduled",
 		zap.Int("schedule-id", schedule.ID),
 		zap.String("shift-start", startExpr),
@@ -90,17 +92,18 @@ func (s *service) Stop() {
 	s.log.Info("jobs stopped")
 }
 
-func (s *service) startShift(scheduleID int) error {
+func (s *service) startShift(scheduleID int) {
 	sched, err := s.manager.StartShift(scheduleID)
 	if err != nil {
+		if errors.Is(err, schedule.ErrNoActiveShift) {
+			return
+		}
+
 		s.log.Error("an issue occured while starting a shift",
 			zap.Error(err),
 			zap.Int("schedule-id", scheduleID),
 		)
-	}
-
-	if sched.ActiveShift == nil {
-		return nil
+		return
 	}
 
 	eod := sched.ActiveShift.SlackHandle
@@ -110,21 +113,19 @@ func (s *service) startShift(scheduleID int) error {
 			zap.Error(err),
 			zap.String("channel-id", sched.ChannelID))
 	}
-
-	return nil
 }
 
-func (s *service) endShift(scheduleID int) error {
+func (s *service) endShift(scheduleID int) {
 	sched, err := s.manager.EndShift(scheduleID)
 	if err != nil {
+		if errors.Is(err, schedule.ErrNoActiveShift) {
+			return
+		}
 		s.log.Error("an issue occured while starting a shift",
 			zap.Error(err),
 			zap.Int("schedule-id", scheduleID),
 		)
-	}
-
-	if sched.ActiveShift == nil {
-		return nil
+		return
 	}
 
 	_, _, err = s.client.PostMessage(
@@ -146,6 +147,4 @@ func (s *service) endShift(scheduleID int) error {
 			zap.Error(err),
 			zap.String("channel-id", sched.ChannelID))
 	}
-
-	return nil
 }

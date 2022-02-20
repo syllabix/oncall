@@ -29,5 +29,5 @@ func (s Store) Update(ctx context.Context, shifts ...*model.Shift) error {
 		}
 	}
 
-	return nil
+	return tx.Commit()
 }

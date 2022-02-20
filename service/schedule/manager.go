@@ -119,15 +119,12 @@ func (m *manager) StartShift(scheduleID int) (oncall.Schedule, error) {
 	}
 
 	if len(schedule.R.Shifts) < 1 {
-		return oncall.Schedule{},
-			errors.New("there are no shifts setup for this schedule")
+		return oncall.Schedule{}, ErrNoActiveShift
 	}
 
 	current, next := nextShiftFrom(schedule)
-
 	current.Status = null.StringFromPtr(nil)
 	current.StartedAt = null.TimeFromPtr(nil)
-
 	next.Status = null.StringFrom(model.ShiftStatusActive)
 	next.StartedAt = null.TimeFrom(time.Now())
 
@@ -153,8 +150,7 @@ func (m *manager) EndShift(scheduleID int) (oncall.Schedule, error) {
 	}
 
 	if len(schedule.R.Shifts) < 1 {
-		return oncall.Schedule{},
-			errors.New("there are no shifts setup for this schedule")
+		return oncall.Schedule{}, ErrNoActiveShift
 	}
 
 	current, _ := nextShiftFrom(schedule)

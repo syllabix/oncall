@@ -17,11 +17,12 @@ func nextShiftFrom(schedule *model.Schedule) (current *model.Shift, next *model.
 		}
 	}
 
-	if idx >= len(schedule.R.Shifts)-1 {
+	numShifts := len(schedule.R.Shifts)
+	if idx == numShifts {
 		return current, schedule.R.Shifts[0]
 	}
 
-	return current, schedule.R.Shifts[1]
+	return current, schedule.R.Shifts[idx]
 }
 
 func isAfterHours(schedule *model.Schedule) bool {

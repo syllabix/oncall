@@ -306,3 +306,143 @@ func Test_arrange(t *testing.T) {
 		})
 	}
 }
+
+func Test_nextShiftFrom(t *testing.T) {
+	type args struct {
+		schedule *model.Schedule
+	}
+	tests := []struct {
+		name        string
+		args        args
+		wantCurrent *model.Shift
+		wantNext    *model.Shift
+	}{
+		{
+			name: "returns_the_active_and_next_shift_1",
+			args: args{
+				schedule: func() *model.Schedule {
+					sched := new(model.Schedule)
+					sched.ID = 999
+					sched.R = sched.R.NewStruct()
+					sched.R.Shifts = model.ShiftSlice{
+						{
+							SequenceID: 6,
+							UserID:     111,
+							ScheduleID: 999,
+						},
+						{
+							SequenceID: 10,
+							UserID:     222,
+							ScheduleID: 999,
+							Status:     null.StringFrom(model.ShiftStatusActive),
+						},
+					}
+					return sched
+				}(),
+			},
+			wantCurrent: &model.Shift{
+				SequenceID: 10,
+				UserID:     222,
+				ScheduleID: 999,
+				Status:     null.StringFrom(model.ShiftStatusActive),
+			},
+			wantNext: &model.Shift{
+				SequenceID: 6,
+				UserID:     111,
+				ScheduleID: 999,
+			},
+		},
+		{
+			name: "returns_the_active_and_next_shift_2",
+			args: args{
+				schedule: func() *model.Schedule {
+					sched := new(model.Schedule)
+					sched.ID = 999
+					sched.R = sched.R.NewStruct()
+					sched.R.Shifts = model.ShiftSlice{
+						{
+							SequenceID: 6,
+							UserID:     111,
+							ScheduleID: 999,
+							Status:     null.StringFrom(model.ShiftStatusActive),
+						},
+						{
+							SequenceID: 10,
+							UserID:     222,
+							ScheduleID: 999,
+						},
+					}
+					return sched
+				}(),
+			},
+			wantCurrent: &model.Shift{
+				SequenceID: 6,
+				UserID:     111,
+				ScheduleID: 999,
+				Status:     null.StringFrom(model.ShiftStatusActive),
+			},
+			wantNext: &model.Shift{
+				SequenceID: 10,
+				UserID:     222,
+				ScheduleID: 999,
+			},
+		},
+		{
+			name: "returns_the_active_and_next_shift_3",
+			args: args{
+				schedule: func() *model.Schedule {
+					sched := new(model.Schedule)
+					sched.ID = 999
+					sched.R = sched.R.NewStruct()
+					sched.R.Shifts = model.ShiftSlice{
+						{
+							SequenceID: 10,
+							UserID:     222,
+							ScheduleID: 999,
+						},
+						{
+							SequenceID: 12,
+							UserID:     333,
+							ScheduleID: 999,
+						},
+						{
+							SequenceID: 23,
+							UserID:     444,
+							ScheduleID: 999,
+						},
+						{
+							SequenceID: 33,
+							UserID:     555,
+							ScheduleID: 999,
+							Status:     null.StringFrom(model.ShiftStatusActive),
+						},
+						{
+							SequenceID: 42,
+							UserID:     666,
+							ScheduleID: 999,
+						},
+					}
+					return sched
+				}(),
+			},
+			wantCurrent: &model.Shift{
+				SequenceID: 33,
+				UserID:     555,
+				ScheduleID: 999,
+				Status:     null.StringFrom(model.ShiftStatusActive),
+			},
+			wantNext: &model.Shift{
+				SequenceID: 42,
+				UserID:     666,
+				ScheduleID: 999,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotCurrent, gotNext := nextShiftFrom(tt.args.schedule)
+			assert.EqualValues(t, tt.wantCurrent, gotCurrent)
+			assert.EqualValues(t, tt.wantNext, gotNext)
+		})
+	}
+}

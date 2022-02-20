@@ -67,6 +67,8 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 			}, nil
 		}
 
+	case "/withdraw":
+
 	case "/add":
 		err := h.adder.AddToSchedule(cmd)
 		if err != nil {

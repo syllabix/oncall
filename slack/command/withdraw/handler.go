@@ -87,7 +87,7 @@ func (h *handler) Handle(cmd slack.SlashCommand) (slack.Attachment, error) {
 	}
 
 	return slack.Attachment{
-		Title: "Something went wrong",
+		Title: "Team member withdrawn ok",
 		Text:  ":white_check_mark: the team member has been withdrawn from the schedule",
 	}, nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/syllabix/oncall/config"
 	"github.com/syllabix/oncall/slack/command/add"
 	"github.com/syllabix/oncall/slack/command/schedule"
+	"github.com/syllabix/oncall/slack/command/swap"
 	"github.com/syllabix/oncall/slack/command/withdraw"
 	"go.uber.org/zap"
 )
@@ -29,9 +30,10 @@ func NewHandler(
 	adder add.Handler,
 	schedule schedule.Handler,
 	withdrawer withdraw.Handler,
+	swapper swap.Handler,
 	log *zap.Logger,
 ) Handler {
-	return &handler{config, adder, schedule, withdrawer, log}
+	return &handler{config, adder, schedule, withdrawer, swapper, log}
 }
 
 type handler struct {
@@ -39,6 +41,7 @@ type handler struct {
 	adder      add.Handler
 	schedule   schedule.Handler
 	withdrawer withdraw.Handler
+	swapper    swap.Handler
 
 	log *zap.Logger
 }
@@ -69,6 +72,9 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 				Text:  ":warning: The */schedule* command expects either a *create*, *view*, or *edit* sub command",
 			}, nil
 		}
+
+	case "/swap":
+		return h.swapper.Handle(cmd)
 
 	case "/withdraw":
 		return h.withdrawer.Handle(cmd)

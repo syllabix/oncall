@@ -51,20 +51,20 @@ build:
 name = ""
 ## Creates a new db migration file for the provided service. (Ex: make migration name=cool-new-tables)
 migration:
-	$(MAKE) _dexec CMD="sql-migrate new -config=datastore/db/migrations/dbconfig.yml -env=dev $(name)"
+	$(MAKE) _dexec CMD="sql-migrate new -config=common/db/migrations/dbconfig.yml -env=dev $(name)"
 
 ## Run an up migration
 migrate.up:
-	$(MAKE) _dexec CMD="sql-migrate up -config=datastore/db/migrations/dbconfig.yml -env=dev"
+	$(MAKE) _dexec CMD="sql-migrate up -config=common/db/migrations/dbconfig.yml -env=dev"
 
 ## Run a down migration
 migrate.down:
-	$(MAKE) _dexec CMD="sql-migrate down -config=datastore/db/migrations/dbconfig.yml -env=dev"
+	$(MAKE) _dexec CMD="sql-migrate down -config=common/db/migrations/dbconfig.yml -env=dev"
 
 ## Generates database models based upon the existing tables in your local development database
 dbmodels:
 	rm -rf ./datastore/model/*.go
-	$(MAKE) _dexec CMD="sqlboiler -c datastore/model/sqlboiler.toml -o datastore/model -p model --tag db --no-hooks psql --add-soft-deletes"
+	$(MAKE) _dexec CMD="sqlboiler -c datastore/model/sqlboiler.toml -o datastore/model -p model --tag db --no-hooks psql --no-tests"
 
 _dexec:
 	docker exec oncall_dev ${CMD}

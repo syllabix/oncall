@@ -11,7 +11,7 @@ var newForm = Form{
 			Element: &FormElement{
 				Type:     "plain_text_input",
 				ActionID: forminput.CreateScheduleNameInput,
-				Placeholder: Label{
+				Placeholder: &Label{
 					Type: "plain_text",
 					Text: "Schedule Name",
 				},
@@ -21,21 +21,50 @@ var newForm = Form{
 				Text: "What is the name of the schedule?",
 			},
 		},
-		// shift start time picker in put
+		// weedays only checkbox
+		{
+			Type:    "input",
+			BlockID: forminput.CreateScheduleWeekdaysOnly,
+			Element: &FormElement{
+				Type:     "radio_buttons",
+				ActionID: forminput.CreateScheduleWeekdaysOnlyInput,
+				Options: []Option{
+					{
+						Text: Label{
+							Type: "plain_text",
+							Text: "Yes",
+						},
+						Value: "false",
+					},
+					{
+						Text: Label{
+							Type: "plain_text",
+							Text: "No",
+						},
+						Value: "true",
+					},
+				},
+			},
+			Label: &Label{
+				Type: "plain_text",
+				Text: "Can a shift happen on the weekend?",
+			},
+		},
+		// shift start time picker input
 		{
 			Type:    "input",
 			BlockID: forminput.CreateScheduleStartTime,
 			Element: &FormElement{
 				Type:     "timepicker",
 				ActionID: forminput.CreateScheduleStartTimeInput,
-				Placeholder: Label{
+				Placeholder: &Label{
 					Type: "plain_text",
 					Text: "Select time",
 				},
 			},
 			Label: &Label{
 				Type: "plain_text",
-				Text: "When does the shift start?",
+				Text: "When does a shift start?",
 			},
 		},
 		// shift end time picker in put
@@ -45,14 +74,14 @@ var newForm = Form{
 			Element: &FormElement{
 				Type:     "timepicker",
 				ActionID: forminput.CreateScheduleEndTimeInput,
-				Placeholder: Label{
+				Placeholder: &Label{
 					Type: "plain_text",
 					Text: "Select time",
 				},
 			},
 			Label: &Label{
 				Type: "plain_text",
-				Text: "When does the shift end?",
+				Text: "When does a shift end?",
 			},
 		},
 		// shift end time picker input
@@ -62,7 +91,7 @@ var newForm = Form{
 			Element: &FormElement{
 				Type:     "static_select",
 				ActionID: forminput.CreateScheduleIntervalInput,
-				Placeholder: Label{
+				Placeholder: &Label{
 					Type: "plain_text",
 					Text: "Select interval",
 				},

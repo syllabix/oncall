@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/syllabix/oncall/datastore/db"
+	"github.com/syllabix/oncall/common/db"
 )
 
 type SlackSettings struct {

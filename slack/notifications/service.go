@@ -1,6 +1,7 @@
 package notifications
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -66,12 +67,16 @@ func (s *service) Schedule(schedule oncall.Schedule) error {
 		endExpr = fmt.Sprintf("1 %s * * 0-6", endhour)
 	}
 
-	s.scheduler.Cron(startExpr).Do(func() { s.startShift(schedule.ID) })
-	s.scheduler.Cron(endExpr).Do(func() { s.endShift(schedule.ID) })
+	s.scheduler.Cron(startExpr).
+		Tag(fmt.Sprintf("sched-%d-start", schedule.ID)).
+		Do(func() { s.startShift(schedule.ID) })
+	s.scheduler.Cron(endExpr).
+		Tag(fmt.Sprintf("sched-%d-end", schedule.ID)).
+		Do(func() { s.endShift(schedule.ID) })
 	s.log.Info("on call shifts have been scheduled",
-		zap.String("schedule-id", schedule.ID),
+		zap.Int("schedule-id", schedule.ID),
 		zap.String("shift-start", startExpr),
-		zap.String("shift-end", startExpr),
+		zap.String("shift-end", endExpr),
 	)
 
 	return nil
@@ -82,44 +87,45 @@ func (s *service) Start() {
 }
 
 func (s *service) Stop() {
+	s.log.Info("stopping scheduled jobs...")
 	s.scheduler.Stop()
+	s.log.Info("jobs stopped")
 }
 
-func (s *service) startShift(scheduleID string) error {
+func (s *service) startShift(scheduleID int) {
 	sched, err := s.manager.StartShift(scheduleID)
 	if err != nil {
+		if errors.Is(err, schedule.ErrNoActiveShift) {
+			return
+		}
+
 		s.log.Error("an issue occured while starting a shift",
 			zap.Error(err),
-			zap.String("schedule-id", scheduleID),
+			zap.Int("schedule-id", scheduleID),
 		)
+		return
 	}
 
-	if sched.ActiveShift == nil {
-		return nil
-	}
-
-	eod := "eod " + sched.ActiveShift.SlackHandle
+	eod := sched.ActiveShift.SlackHandle
 	_, err = s.client.SetTopicOfConversation(sched.ChannelID, sched.Name+": "+eod)
 	if err != nil {
 		s.log.Error("failed to update channel with shift start",
 			zap.Error(err),
 			zap.String("channel-id", sched.ChannelID))
 	}
-
-	return nil
 }
 
-func (s *service) endShift(scheduleID string) error {
+func (s *service) endShift(scheduleID int) {
 	sched, err := s.manager.EndShift(scheduleID)
 	if err != nil {
+		if errors.Is(err, schedule.ErrNoActiveShift) {
+			return
+		}
 		s.log.Error("an issue occured while starting a shift",
 			zap.Error(err),
-			zap.String("schedule-id", scheduleID),
+			zap.Int("schedule-id", scheduleID),
 		)
-	}
-
-	if sched.ActiveShift == nil {
-		return nil
+		return
 	}
 
 	_, _, err = s.client.PostMessage(
@@ -135,12 +141,10 @@ func (s *service) endShift(scheduleID string) error {
 			zap.String("channel-id", sched.ChannelID))
 	}
 
-	_, err = s.client.SetTopicOfConversation(sched.ChannelID, sched.Name+": :no_bell:")
+	_, err = s.client.SetTopicOfConversation(sched.ChannelID, sched.Name+": :sleeping:")
 	if err != nil {
 		s.log.Error("failed to update channel with shift end",
 			zap.Error(err),
 			zap.String("channel-id", sched.ChannelID))
 	}
-
-	return nil
 }

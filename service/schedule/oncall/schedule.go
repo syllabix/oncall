@@ -2,12 +2,13 @@ package oncall
 
 import "time"
 
-type Interval string
+type Interval = string
 
 const (
 	Daily    Interval = "daily"
 	Weekly   Interval = "weekly"
 	BiWeekly Interval = "bi-weekly"
+	Monthy   Interval = "monthly"
 )
 
 type UserOnDuty struct {
@@ -15,7 +16,7 @@ type UserOnDuty struct {
 }
 
 type Shift struct {
-	UserID      string
+	UserID      int
 	FirstName   string
 	LastName    string
 	SlackHandle string
@@ -24,7 +25,7 @@ type Shift struct {
 }
 
 type Schedule struct {
-	ID            string
+	ID            int
 	TeamID        string
 	ChannelID     string
 	Name          string

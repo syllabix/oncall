@@ -70,11 +70,13 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 	case "/add":
 		err := h.adder.AddToSchedule(cmd)
 		if err != nil {
-			h.log.Error("failed to add user to schedule",
-				zap.Error(err),
-				zap.String("channel", cmd.ChannelID))
-
 			switch {
+			case errors.Is(err, add.ErrUserAlreadyAdded):
+				return slack.Attachment{
+					Title: "Failed to create new shifts",
+					Text:  ":warning: The team member is already assigned to this schedule",
+				}, nil
+
 			case errors.Is(err, add.ErrInvalidInput):
 				return slack.Attachment{
 					Title: "Failed to create new shifts",
@@ -88,13 +90,17 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 				}, nil
 
 			default:
+				h.log.Error("failed to add user to schedule",
+					zap.Error(err),
+					zap.String("channel", cmd.ChannelID))
+
 				return slack.Attachment{
 					Title: "Something went wrong",
 					Text:  ":cry: O wow this is embarrassing but I was not able to add team members to the schedule",
 				}, nil
 			}
-
 		}
+
 		return slack.Attachment{
 			Title: "Schedule updated!",
 			Text:  ":white_check_mark: Your on call schedule has been updated",

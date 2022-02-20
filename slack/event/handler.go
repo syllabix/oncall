@@ -41,7 +41,7 @@ func (h handler) handleAppMention(event *slackevents.AppMentionEvent) error {
 		_, _, err = h.client.PostMessage(
 			event.Channel,
 			slack.MsgOptionText(
-				":fearful: no one is on call at the moment...",
+				":sleeping: no one is on call at the moment",
 				false,
 			),
 			slack.MsgOptionTS(event.TimeStamp),

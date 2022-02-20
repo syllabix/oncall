@@ -5,9 +5,11 @@ import (
 
 	"github.com/syllabix/oncall/api"
 	"github.com/syllabix/oncall/client"
+	"github.com/syllabix/oncall/common"
+	observabilty "github.com/syllabix/oncall/common/observability"
 	"github.com/syllabix/oncall/config"
 	"github.com/syllabix/oncall/datastore"
-	observabilty "github.com/syllabix/oncall/observability"
+
 	"github.com/syllabix/oncall/service"
 	"github.com/syllabix/oncall/slack"
 	"github.com/syllabix/oncall/slack/notifications"
@@ -43,13 +45,13 @@ func NewApplication(options ...Option) Application {
 
 		// application dependencies
 		fx.Provide(config.Load),
-		datastore.Module,
 		api.Module,
-		web.Module,
-		observabilty.Module,
-		service.Module,
+		common.Module,
 		client.Module,
+		datastore.Module,
+		service.Module,
 		slack.Module,
+		web.Module,
 
 		// start the engines
 		fx.Invoke(start),

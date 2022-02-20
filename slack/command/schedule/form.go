@@ -21,7 +21,7 @@ type Block struct {
 type FormElement struct {
 	Type        string   `json:"type,omitempty"`
 	ActionID    string   `json:"action_id,omitempty"`
-	Placeholder Label    `json:"placeholder,omitempty"`
+	Placeholder *Label   `json:"placeholder,omitempty"`
 	Options     []Option `json:"options,omitempty"`
 }
 

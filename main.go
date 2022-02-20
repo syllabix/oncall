@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/syllabix/logger"
+	"github.com/syllabix/oncall/common/banner"
 	"github.com/syllabix/oncall/oncall"
-	"github.com/syllabix/oncall/util/banner"
 	"go.uber.org/zap"
 )
 

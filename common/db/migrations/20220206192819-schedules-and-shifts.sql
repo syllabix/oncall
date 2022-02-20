@@ -34,7 +34,10 @@ CREATE TABLE IF NOT EXISTS shifts (
 );
 
 CREATE INDEX shifts_sequence_id_idx ON shifts (sequence_id);
-ALTER TABLE shifts ADD CONSTRAINT shift_status_uq UNIQUE (schedule_id, status);
+ALTER TABLE shifts
+ADD CONSTRAINT shift_status_uq
+UNIQUE (schedule_id, status)
+DEFERRABLE INITIALLY DEFERRED;
 
 -- +migrate Down
 DROP INDEX IF EXISTS shifts_sequence_id_idx;

@@ -1,6 +1,25 @@
 package shift
 
-import "github.com/syllabix/oncall/datastore/model"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/syllabix/oncall/datastore/model"
+	"github.com/syllabix/oncall/service/oncall"
+)
+
+func asShift(s *model.Shift, schedule *model.Schedule) *oncall.Shift {
+	usr := s.R.User
+	return &oncall.Shift{
+		UserID:       usr.ID,
+		FirstName:    usr.FirstName,
+		LastName:     usr.LastName,
+		SlackHandle:  usr.SlackHandle,
+		ScheduleName: schedule.Name,
+		StartTime:    schedule.StartTime,
+		EndTime:      schedule.EndTime,
+	}
+}
 
 func findShift(userID int, schedule *model.Schedule) *model.Shift {
 	if len(schedule.R.Shifts) < 1 {
@@ -31,4 +50,45 @@ func nextActive(schedule *model.Schedule) *model.Shift {
 	}
 
 	return nil
+}
+
+func swapShifts(userA, userB model.User, schedule *model.Schedule) ([]*model.Shift, error) {
+	if len(schedule.R.Shifts) < 2 {
+		return nil, errors.New("the schedule has less then two shifts")
+	}
+
+	set := make(map[int]*model.Shift)
+	for _, shift := range schedule.R.Shifts {
+		set[shift.UserID] = shift
+	}
+
+	shiftA, contains := set[userA.ID]
+	if !contains {
+		return nil, fmt.Errorf("user %d is not in schedule", userA.ID)
+	}
+
+	shiftB, contains := set[userB.ID]
+	if !contains {
+		return nil, fmt.Errorf("user %d is not in schedule", userB.ID)
+	}
+
+	return []*model.Shift{
+		{
+			UserID:     shiftA.UserID,
+			ScheduleID: shiftA.ScheduleID,
+			R:          shiftA.R,
+			Status:     shiftB.Status,
+			StartedAt:  shiftB.StartedAt,
+			SequenceID: shiftB.SequenceID,
+		},
+		{
+			UserID:     shiftB.UserID,
+			ScheduleID: shiftB.ScheduleID,
+			R:          shiftB.R,
+			Status:     shiftA.Status,
+			StartedAt:  shiftA.StartedAt,
+			SequenceID: shiftA.SequenceID,
+		},
+	}, nil
+
 }

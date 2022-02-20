@@ -32,7 +32,14 @@ type RemoveRequest struct {
 	UserSlackID string
 }
 
+type SwapRequest struct {
+	ChannelID    string
+	UserSlackID1 string
+	UserSlackID2 string
+}
+
 type Manager interface {
+	SwapShift(context.Context, SwapRequest) (next *oncall.Shift, err error)
 	RemoveShift(context.Context, RemoveRequest) (next *oncall.Shift, err error)
 }
 
@@ -48,6 +55,40 @@ type manager struct {
 	users     user.Store
 	shifts    shift.Store
 	schedules schedule.Store
+}
+
+func (m *manager) SwapShift(ctx context.Context, req SwapRequest) (next *oncall.Shift, err error) {
+	users, err := m.users.ListBySlackID(req.UserSlackID1, req.UserSlackID2)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch users to swap schedule: %w", err)
+	}
+
+	if len(users) != 2 {
+		return nil, fmt.Errorf("could not find both users requested for shift swap")
+	}
+
+	schedule, err := m.schedules.GetByChannelID(ctx, req.ChannelID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch schedule while removing shift: %w", err)
+	}
+
+	swapped, err := swapShifts(users[0], users[1], schedule)
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.shifts.Update(ctx, swapped...)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, shift := range swapped {
+		if shift.Status.String == model.ShiftStatusActive {
+			return asShift(shift, schedule), nil
+		}
+	}
+
+	return nil, nil
 }
 
 func (m *manager) RemoveShift(ctx context.Context, req RemoveRequest) (*oncall.Shift, error) {
@@ -96,14 +137,5 @@ func (m *manager) RemoveShift(ctx context.Context, req RemoveRequest) (*oncall.S
 		return nil, err
 	}
 
-	usr := newActive.R.User
-	return &oncall.Shift{
-		UserID:       usr.ID,
-		FirstName:    usr.FirstName,
-		LastName:     usr.LastName,
-		SlackHandle:  usr.SlackHandle,
-		ScheduleName: schedule.Name,
-		StartTime:    schedule.StartTime,
-		EndTime:      schedule.EndTime,
-	}, nil
+	return asShift(newActive, schedule), nil
 }

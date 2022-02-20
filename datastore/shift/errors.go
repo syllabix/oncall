@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 

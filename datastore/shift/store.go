@@ -5,7 +5,6 @@ import (
 
 	"github.com/syllabix/oncall/common/db"
 	"github.com/syllabix/oncall/datastore/model"
-	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 type Store struct {
@@ -22,11 +21,9 @@ func (s Store) Update(ctx context.Context, shifts ...*model.Shift) error {
 		return failure(err)
 	}
 
-	for _, shift := range shifts {
-		_, err := shift.Update(ctx, tx, boil.Infer())
-		if err != nil {
-			return rollback(tx, err)
-		}
+	_, err = tx.NamedExec(update, shifts)
+	if err != nil {
+		return rollback(tx, err)
 	}
 
 	err = tx.Commit()

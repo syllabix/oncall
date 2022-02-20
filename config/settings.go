@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/syllabix/oncall/common/db"
+	"go.uber.org/zap"
 )
 
 type SlackSettings struct {
@@ -29,10 +29,10 @@ type ServerSettings struct {
 	WriteTimeout time.Duration
 }
 
-func Load() (ServerSettings, SlackSettings, db.Settings) {
+func Load(log *zap.Logger) (ServerSettings, SlackSettings, db.Settings) {
 	err := godotenv.Load()
 	if err != nil {
-		panic(fmt.Sprintf("unable to load .env file: reason %v", err))
+		log.Warn("unable to load .env file to source config")
 	}
 
 	return ServerSettings{

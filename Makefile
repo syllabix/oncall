@@ -44,9 +44,11 @@ dev.stop:
 manifest:
 	go1.18beta2 run ./.dev/manifest/generator.go
 
-## build binary for linux
-build:	
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go1.18beta2 build -v -o bin/oncall
+## release to heroku
+release:
+	heroku container:login
+	heroku container:push web
+	heroku container:release web
 
 name = ""
 ## Creates a new db migration file for the provided service. (Ex: make migration name=cool-new-tables)

@@ -72,7 +72,7 @@ func arrange(shifts model.ShiftSlice) (active *model.Shift, ordered model.ShiftS
 	// so when we compute the calendar we have a valid
 	// date to start from
 	if idx == -1 {
-		shifts[0].StartedAt.Time = time.Now()
+		shifts[0].StartedAt.Time = time.Now().AddDate(0, 0, -1)
 		return shifts[0], shifts
 	}
 

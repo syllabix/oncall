@@ -10,6 +10,7 @@ import (
 	"github.com/syllabix/oncall/service/schedule"
 	"github.com/syllabix/oncall/slack/forminput"
 	"github.com/syllabix/oncall/slack/notifications"
+	"go.uber.org/zap"
 )
 
 type Creator interface {
@@ -20,19 +21,22 @@ func NewCreator(
 	client *slack.Client,
 	scheduler schedule.Manager,
 	notifier notifications.Service,
+	log *zap.Logger,
 ) Creator {
-	return &creator{client, scheduler, notifier}
+	return &creator{client, scheduler, notifier, log}
 }
 
 type creator struct {
 	client    *slack.Client
 	scheduler schedule.Manager
 	notifier  notifications.Service
+	log       *zap.Logger
 }
 
 func (c *creator) Create(callback slack.InteractionCallback) error {
 	sched, err := c.mapToSchedule(callback)
 	if err != nil {
+		c.log.Error("failed to map schedule form data", zap.Error(err))
 		return c.respond(callback.Channel.ID, callback.ResponseURL,
 			":warning: Please provide a value for all fields to setup a new schedule",
 		)

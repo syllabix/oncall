@@ -437,6 +437,39 @@ func Test_nextShiftFrom(t *testing.T) {
 				ScheduleID: 999,
 			},
 		},
+		{
+			name: "returns_the_active_and_next_shift_1_when_there_is_no_active",
+			args: args{
+				schedule: func() *model.Schedule {
+					sched := new(model.Schedule)
+					sched.ID = 999
+					sched.R = sched.R.NewStruct()
+					sched.R.Shifts = model.ShiftSlice{
+						{
+							SequenceID: 6,
+							UserID:     111,
+							ScheduleID: 999,
+						},
+						{
+							SequenceID: 10,
+							UserID:     222,
+							ScheduleID: 999,
+						},
+						{
+							SequenceID: 12,
+							UserID:     333,
+							ScheduleID: 999,
+						},
+					}
+					return sched
+				}(),
+			},
+			wantNext: &model.Shift{
+				SequenceID: 6,
+				UserID:     111,
+				ScheduleID: 999,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

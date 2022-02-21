@@ -122,13 +122,19 @@ func (m *manager) StartShift(scheduleID int) (oncall.Schedule, error) {
 		return oncall.Schedule{}, ErrNoActiveShift
 	}
 
+	var updates []*model.Shift
 	current, next := nextShiftFrom(schedule)
-	current.Status = null.StringFromPtr(nil)
-	current.StartedAt = null.TimeFromPtr(nil)
+	if current != nil {
+		current.Status = null.StringFromPtr(nil)
+		current.StartedAt = null.TimeFromPtr(nil)
+		updates = append(updates, current)
+	}
+
 	next.Status = null.StringFrom(model.ShiftStatusActive)
 	next.StartedAt = null.TimeFrom(time.Now())
+	updates = append(updates, next)
 
-	err = m.shifts.Update(context.TODO(), current, next)
+	err = m.shifts.Update(context.TODO(), updates...)
 	if err != nil {
 		return oncall.Schedule{},
 			fmt.Errorf("failed to update on call schedule shifts: %w", err)

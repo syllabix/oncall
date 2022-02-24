@@ -1,6 +1,7 @@
 package schedule
 
 import (
+	"sort"
 	"time"
 
 	"github.com/syllabix/oncall/datastore/model"
@@ -58,6 +59,10 @@ func arrange(shifts model.ShiftSlice) (active *model.Shift, ordered model.ShiftS
 		return nil, nil
 	}
 
+	sort.Slice(shifts, func(i, j int) bool {
+		return shifts[i].SequenceID < shifts[j].SequenceID
+	})
+
 	idx := -1
 	for i, shift := range shifts {
 		if shift.Status.String == model.ShiftStatusActive {
@@ -76,9 +81,9 @@ func arrange(shifts model.ShiftSlice) (active *model.Shift, ordered model.ShiftS
 		return shifts[0], shifts
 	}
 
-	if idx == len(shifts) {
-		return active, shifts
-	}
+	// if idx == len(shifts) {
+	// 	return active, shifts
+	// }
 
 	numShifts := len(shifts)
 	ordered = make(model.ShiftSlice, 0, numShifts)

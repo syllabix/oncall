@@ -36,15 +36,15 @@ func Test_arrange(t *testing.T) {
 						ScheduleID: 999,
 					},
 					{
-						SequenceID: 13,
-						UserID:     102,
-						ScheduleID: 999,
-					},
-					{
 						SequenceID: 29,
 						UserID:     103,
 						ScheduleID: 999,
 						Status:     null.StringFrom(model.ShiftStatusActive),
+					},
+					{
+						SequenceID: 13,
+						UserID:     102,
+						ScheduleID: 999,
 					},
 					{
 						SequenceID: 32,
@@ -291,6 +291,77 @@ func Test_arrange(t *testing.T) {
 					{
 						SequenceID: 32,
 						UserID:     104,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusActive),
+					},
+				},
+			},
+		},
+		{
+			name: "returns_shifts_properly_ordered_when_override_is_present",
+			args: args{
+				shifts: model.ShiftSlice{
+					{
+						SequenceID: 7,
+						UserID:     100,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 10,
+						UserID:     101,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 29,
+						UserID:     103,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 13,
+						UserID:     102,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusActive),
+					},
+					{
+						SequenceID: 32,
+						UserID:     104,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusOverride),
+					},
+				},
+			},
+			want: expected{
+				active: &model.Shift{
+					SequenceID: 13,
+					UserID:     102,
+					ScheduleID: 999,
+					Status:     null.StringFrom(model.ShiftStatusActive),
+				},
+				ordered: model.ShiftSlice{
+					{
+						SequenceID: 29,
+						UserID:     103,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 32,
+						UserID:     104,
+						ScheduleID: 999,
+						Status:     null.StringFrom(model.ShiftStatusOverride),
+					},
+					{
+						SequenceID: 7,
+						UserID:     100,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 10,
+						UserID:     101,
+						ScheduleID: 999,
+					},
+					{
+						SequenceID: 13,
+						UserID:     102,
 						ScheduleID: 999,
 						Status:     null.StringFrom(model.ShiftStatusActive),
 					},

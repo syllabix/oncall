@@ -477,6 +477,11 @@ func Test_nextShiftFrom(t *testing.T) {
 							ScheduleID: 999,
 						},
 						{
+							SequenceID: 42,
+							UserID:     666,
+							ScheduleID: 999,
+						},
+						{
 							SequenceID: 23,
 							UserID:     444,
 							ScheduleID: 999,
@@ -486,11 +491,6 @@ func Test_nextShiftFrom(t *testing.T) {
 							UserID:     555,
 							ScheduleID: 999,
 							Status:     null.StringFrom(model.ShiftStatusActive),
-						},
-						{
-							SequenceID: 42,
-							UserID:     666,
-							ScheduleID: 999,
 						},
 					}
 					return sched

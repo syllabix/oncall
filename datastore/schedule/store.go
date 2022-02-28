@@ -45,6 +45,10 @@ func (s *Store) Update(ctx context.Context, schedule *model.Schedule) (*model.Sc
 func (s *Store) GetByID(ctx context.Context, id int) (*model.Schedule, error) {
 	sched, err := model.Schedules(
 		model.ScheduleWhere.ID.EQ(id),
+		qm.Load(
+			model.ScheduleRels.Shifts,
+			qm.OrderBy(model.ShiftColumns.SequenceID),
+		),
 		qm.Load(qm.Rels(
 			model.ScheduleRels.Shifts,
 			model.ShiftRels.User,
@@ -61,6 +65,10 @@ func (s *Store) GetByID(ctx context.Context, id int) (*model.Schedule, error) {
 func (s *Store) GetByChannelID(ctx context.Context, id string) (*model.Schedule, error) {
 	sched, err := model.Schedules(
 		model.ScheduleWhere.SlackChannelID.EQ(id),
+		qm.Load(
+			model.ScheduleRels.Shifts,
+			qm.OrderBy(model.ShiftColumns.SequenceID),
+		),
 		qm.Load(qm.Rels(
 			model.ScheduleRels.Shifts,
 			model.ShiftRels.User,
@@ -77,6 +85,10 @@ func (s *Store) GetByChannelID(ctx context.Context, id string) (*model.Schedule,
 func (s *Store) GetEnabledSchedules(ctx context.Context) (model.ScheduleSlice, error) {
 	schedules, err := model.Schedules(
 		model.ScheduleWhere.IsEnabled.EQ(true),
+		qm.Load(
+			model.ScheduleRels.Shifts,
+			qm.OrderBy(model.ShiftColumns.SequenceID),
+		),
 		qm.Load(qm.Rels(
 			model.ScheduleRels.Shifts,
 			model.ShiftRels.User,

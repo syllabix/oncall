@@ -2,9 +2,7 @@ package slack
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/slack-go/slack/slackevents"
@@ -35,7 +33,6 @@ func NewController(
 
 func (ctrl *Controller) Register(router *httprouter.Router) {
 	router.POST("/slack/action", ctrl.HandleAction)
-	router.POST("/slack/load-options", ctrl.verifier.Verify(ctrl.LoadOptions))
 }
 
 func (ctrl *Controller) HandleAction(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -60,17 +57,5 @@ func (ctrl *Controller) HandleAction(w http.ResponseWriter, r *http.Request, _ h
 		}
 	}
 
-	fmt.Fprint(w, "Ok")
-}
-
-func (ctrl *Controller) LoadOptions(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var payload strings.Builder
-	_, err := io.Copy(&payload, r.Body)
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-	fmt.Println("load options", payload.String())
-	w.WriteHeader(200)
 	fmt.Fprint(w, "Ok")
 }

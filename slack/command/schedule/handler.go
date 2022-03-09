@@ -6,20 +6,18 @@ import (
 
 	"github.com/slack-go/slack"
 	"github.com/syllabix/oncall/service/schedule"
-	"go.uber.org/zap"
 )
 
 type Handler interface {
 	GetUpcomingShifts(channelID string) (slack.Attachment, error)
 }
 
-func NewHandler(manager schedule.Manager, log *zap.Logger) Handler {
-	return &handler{manager, log}
+func NewHandler(manager schedule.Manager) Handler {
+	return &handler{manager}
 }
 
 type handler struct {
 	manager schedule.Manager
-	log     *zap.Logger
 }
 
 func (h *handler) GetUpcomingShifts(channelID string) (slack.Attachment, error) {
@@ -32,11 +30,10 @@ func (h *handler) GetUpcomingShifts(channelID string) (slack.Attachment, error) 
 			}, nil
 		}
 
-		h.log.Error("failed to get next shifts", zap.Error(err))
 		return slack.Attachment{
 			Title: "Something went wrong",
 			Text:  ":cry: O wow this is embarrassing... I was unable to fetch the schedule overview. try again?",
-		}, nil
+		}, err
 	}
 
 	blocks := slack.Blocks{
@@ -89,8 +86,7 @@ Use the */add* command to get team members in the rotation`,
 	}
 
 	return slack.Attachment{
-		Title: "Upcoming On Call Shifts",
-		// Text:   ":calendar: Upcoming On Call Shifts",
+		Title:  "Upcoming On Call Shifts",
 		Blocks: blocks,
 	}, nil
 }

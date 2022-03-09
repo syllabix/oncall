@@ -8,6 +8,8 @@ import (
 	"io"
 
 	"github.com/slack-go/slack/slackevents"
+	"github.com/syllabix/oncall/config"
+	"go.uber.org/zap"
 )
 
 var (
@@ -27,6 +29,20 @@ type Data struct {
 // read closer
 type Parser interface {
 	Parse(io.ReadCloser) (Data, error)
+}
+
+func NewParser(settings config.SlackSettings, log *zap.Logger) Parser {
+	return &parsemonitor{
+		parser: &parser{
+			parse: slackevents.ParseEvent,
+			option: slackevents.OptionVerifyToken(
+				slackevents.TokenComparator{
+					VerificationToken: settings.VerificationToken,
+				},
+			),
+		},
+		log: log,
+	}
 }
 
 type parser struct {

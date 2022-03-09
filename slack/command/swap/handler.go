@@ -48,7 +48,6 @@ func (h *handler) Handle(cmd slack.SlashCommand) (slack.Attachment, error) {
 			UserSlackID2: mentions[1].ID,
 		})
 	if err != nil {
-		h.log.Error("failed to complete swap", zap.Error(err))
 		return slack.Attachment{
 			Title: "Something went wrong",
 			Text:  ":warning: Wow... so sorry but I was unable to complete the swap. Please make sure both team members are assigned and try again.",

@@ -1,18 +1,9 @@
 package event
 
 import (
-	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	"github.com/syllabix/oncall/service/schedule"
 	"go.uber.org/zap"
 )
-
-func NewHandler(client *slack.Client, manager schedule.Manager, log *zap.Logger) Handler {
-	return &handlermonitor{
-		handler: &handler{client, manager},
-		log:     log,
-	}
-}
 
 // handlermonitor is an observability wrapper around
 // an event Handler. It's primary purpose is to decouple

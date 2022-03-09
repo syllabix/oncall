@@ -32,7 +32,7 @@ func NewController(
 // `/schedule` - manage an call schedules
 // `/swap` - swap shifts between two members
 // `/add` - adds a user to an on call rotation
-// `/remove` - removes a user from the on call rotation
+// `/withdraw` - removes a user from the on call rotation
 // `/override` - create an override for the current shift
 
 func (ctrl *Controller) Register(router *httprouter.Router) {
@@ -51,7 +51,6 @@ func (ctrl *Controller) HandleCommand(w http.ResponseWriter, r *http.Request, ps
 
 	res, err := ctrl.handler.Handle(cmd)
 	if err != nil {
-		ctrl.log.Error("command handler failed", zap.Error(err))
 		switch err {
 		case command.ErrInvalidSlackToken:
 			http.Error(w,

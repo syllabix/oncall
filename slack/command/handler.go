@@ -11,7 +11,6 @@ import (
 	"github.com/syllabix/oncall/slack/command/schedule"
 	"github.com/syllabix/oncall/slack/command/swap"
 	"github.com/syllabix/oncall/slack/command/withdraw"
-	"go.uber.org/zap"
 )
 
 var (
@@ -33,7 +32,6 @@ func NewHandler(
 	withdrawer withdraw.Handler,
 	swapper swap.Handler,
 	overrider override.Handler,
-	log *zap.Logger,
 ) Handler {
 	return &handler{
 		config,
@@ -42,7 +40,6 @@ func NewHandler(
 		withdrawer,
 		swapper,
 		overrider,
-		log,
 	}
 }
 
@@ -53,8 +50,6 @@ type handler struct {
 	withdrawer withdraw.Handler
 	swapper    swap.Handler
 	overrider  override.Handler
-
-	log *zap.Logger
 }
 
 func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
@@ -116,10 +111,6 @@ func (h *handler) Handle(cmd slack.SlashCommand) (any, error) {
 				}, nil
 
 			default:
-				h.log.Error("failed to add user to schedule",
-					zap.Error(err),
-					zap.String("channel", cmd.ChannelID))
-
 				return slack.Attachment{
 					Title: "Something went wrong",
 					Text:  ":cry: O wow this is embarrassing but I was not able to add team members to the schedule",

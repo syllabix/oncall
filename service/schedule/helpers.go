@@ -7,6 +7,15 @@ import (
 	"github.com/syllabix/oncall/service/oncall"
 )
 
+func findOverride(schedule *model.Schedule) *model.Shift {
+	for _, shift := range schedule.R.Shifts {
+		if shift.Status.String == model.ShiftStatusOverride {
+			return shift
+		}
+	}
+	return nil
+}
+
 func nextShiftFrom(schedule *model.Schedule) (current *model.Shift, next *model.Shift) {
 	idx := 0
 	for i, shift := range schedule.R.Shifts {

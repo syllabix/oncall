@@ -13,6 +13,7 @@ import (
 	"github.com/syllabix/oncall/datastore/user"
 	"github.com/syllabix/oncall/service/oncall"
 	"github.com/volatiletech/null/v8"
+	"go.uber.org/zap"
 )
 
 var (
@@ -30,14 +31,16 @@ type Manager interface {
 	EndShift(scheduleID int) (oncall.Schedule, error)
 }
 
-func NewManager(db schedule.Store, users user.Store, shifts shift.Store) Manager {
-	return &manager{db, users, shifts}
+func NewManager(db schedule.Store, users user.Store, shifts shift.Store, log *zap.Logger) Manager {
+	return &manager{db, users, shifts, log}
 }
 
 type manager struct {
 	db     schedule.Store
 	users  user.Store
 	shifts shift.Store
+
+	log *zap.Logger
 }
 
 func (m *manager) Create(sched oncall.Schedule) (oncall.Schedule, error) {
@@ -157,6 +160,15 @@ func (m *manager) EndShift(scheduleID int) (oncall.Schedule, error) {
 
 	if len(schedule.R.Shifts) < 1 {
 		return oncall.Schedule{}, ErrNoActiveShift
+	}
+
+	override := findOverride(schedule)
+	if override != nil {
+		override.Status = null.StringFromPtr(nil)
+		err = m.shifts.Update(context.TODO(), override)
+		if err != nil {
+			m.log.Error("failed to update override shift", zap.Error(err))
+		}
 	}
 
 	current, _ := nextShiftFrom(schedule)

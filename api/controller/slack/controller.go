@@ -8,16 +8,14 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/slack-go/slack/slackevents"
-	"github.com/syllabix/oncall/api/middleware"
 	"github.com/syllabix/oncall/api/rest"
 	"github.com/syllabix/oncall/slack/event"
 	"go.uber.org/zap"
 )
 
 type Controller struct {
-	parser   event.Parser
-	handler  event.Handler
-	verifier *middleware.SlackVerifier
+	parser  event.Parser
+	handler event.Handler
 
 	log *zap.Logger
 }
@@ -25,17 +23,15 @@ type Controller struct {
 func NewController(
 	handler event.Handler,
 	parser event.Parser,
-	verifier *middleware.SlackVerifier,
 	log *zap.Logger,
 ) rest.Controller {
 	return rest.MakeController(
-		&Controller{parser, handler, verifier, log},
+		&Controller{parser, handler, log},
 	)
 }
 
 func (ctrl *Controller) Register(router *httprouter.Router) {
 	router.POST("/slack/action", ctrl.HandleAction)
-	router.POST("/slack/load-options", ctrl.verifier.Verify(ctrl.LoadOptions))
 }
 
 func (ctrl *Controller) HandleAction(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

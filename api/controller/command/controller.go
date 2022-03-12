@@ -32,7 +32,7 @@ func NewController(
 // `/schedule` - manage an call schedules
 // `/swap` - swap shifts between two members
 // `/add` - adds a user to an on call rotation
-// `/remove` - removes a user from the on call rotation
+// `/withdraw` - removes a user from the on call rotation
 // `/override` - create an override for the current shift
 
 func (ctrl *Controller) Register(router *httprouter.Router) {

@@ -9,15 +9,13 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/syllabix/oncall/api/middleware"
 	"github.com/syllabix/oncall/api/rest"
-	"github.com/syllabix/oncall/service/schedule"
 	"github.com/syllabix/oncall/slack/interaction"
 	"go.uber.org/zap"
 )
 
 type Controller struct {
-	handler   interaction.Handler
-	verifier  *middleware.SlackVerifier
-	scheduler schedule.Manager
+	handler  interaction.Handler
+	verifier *middleware.SlackVerifier
 
 	log *zap.Logger
 }
@@ -25,11 +23,10 @@ type Controller struct {
 func NewController(
 	handler interaction.Handler,
 	verifier *middleware.SlackVerifier,
-	scheduler schedule.Manager,
 	log *zap.Logger,
 ) rest.Controller {
 	return rest.MakeController(
-		&Controller{handler, verifier, scheduler, log},
+		&Controller{handler, verifier, log},
 	)
 }
 
@@ -71,7 +68,6 @@ func (ctrl *Controller) HandleInteraction(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// ctrl.scheduler.Create(schedule)
 	w.WriteHeader(200)
 	fmt.Fprint(w, "Ok")
 }

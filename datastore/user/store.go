@@ -3,63 +3,49 @@ package user
 import (
 	"context"
 
-	"github.com/jmoiron/sqlx"
-	"github.com/syllabix/oncall/common/db"
-	"github.com/syllabix/oncall/datastore/model"
+	"github.com/syllabix/oncall/datastore/entity"
+	"github.com/syllabix/oncall/datastore/entity/user"
 )
 
 type Store struct {
-	db db.Postgres
+	db *entity.UserClient
 }
 
-func NewStore(db db.Postgres) Store {
-	return Store{db}
+func NewStore(db *entity.Client) Store {
+	return Store{db.User}
 }
 
-func (s Store) GetByID(ctx context.Context, id int) (model.User, error) {
-	user, err := model.FindUser(ctx, s.db, id)
+func (s Store) GetByID(ctx context.Context, id int) (entity.User, error) {
+	user, err := s.db.Get(ctx, id)
 	if err != nil {
-		return failure[model.User](err)
+		return failure[entity.User](err)
 	}
 	return *user, nil
 }
 
-func (s Store) GetBySlackID(ctx context.Context, id string) (model.User, error) {
-	user, err := model.Users(
-		model.UserWhere.SlackID.EQ(id),
-	).One(ctx, s.db)
+func (s Store) GetBySlackID(ctx context.Context, id string) (entity.User, error) {
+	user, err := s.db.Query().
+		Where(user.SlackIDEQ(id)).Only(ctx)
 	if err != nil {
-		return failure[model.User](err)
+		return failure[entity.User](err)
 	}
 	return *user, nil
 }
 
-func (s Store) ListByID(ids ...int) ([]model.User, error) {
-	query, args, err := sqlx.In("SELECT * FROM users WHERE id IN (?);", ids)
+func (s Store) ListByID(ctx context.Context, ids ...int) ([]*entity.User, error) {
+	users, err := s.db.Query().
+		Where(user.IDIn(ids...)).All(ctx)
 	if err != nil {
-		return failure[[]model.User](err)
-	}
-	query = s.db.Rebind(query)
-
-	var users []model.User
-	err = s.db.Select(&users, query, args...)
-	if err != nil {
-		return failure[[]model.User](err)
+		return failure[[]*entity.User](err)
 	}
 	return users, nil
 }
 
-func (s Store) ListBySlackID(ids ...string) ([]model.User, error) {
-	query, args, err := sqlx.In("SELECT * FROM users WHERE slack_id IN (?);", ids)
+func (s Store) ListBySlackID(ctx context.Context, ids ...string) ([]*entity.User, error) {
+	users, err := s.db.Query().
+		Where(user.SlackIDIn(ids...)).All(ctx)
 	if err != nil {
-		return failure[[]model.User](err)
-	}
-	query = s.db.Rebind(query)
-
-	var users []model.User
-	err = s.db.Select(&users, query, args...)
-	if err != nil {
-		return failure[[]model.User](err)
+		return failure[[]*entity.User](err)
 	}
 	return users, nil
 }

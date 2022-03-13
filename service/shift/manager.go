@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/syllabix/oncall/datastore/model"
+	"github.com/syllabix/oncall/datastore/entity"
+	"github.com/syllabix/oncall/datastore/entity/shift"
 	"github.com/syllabix/oncall/datastore/schedule"
-	"github.com/syllabix/oncall/datastore/shift"
+
+	shifts "github.com/syllabix/oncall/datastore/shift"
 	"github.com/syllabix/oncall/datastore/user"
 	"github.com/syllabix/oncall/service/oncall"
-	"github.com/volatiletech/null/v8"
 )
 
 var (
@@ -51,7 +52,7 @@ type Manager interface {
 
 func NewManager(
 	users user.Store,
-	shifts shift.Store,
+	shifts shifts.Store,
 	schedules schedule.Store,
 ) Manager {
 	return &manager{users, shifts, schedules}
@@ -59,12 +60,12 @@ func NewManager(
 
 type manager struct {
 	users     user.Store
-	shifts    shift.Store
+	shifts    shifts.Store
 	schedules schedule.Store
 }
 
 func (m *manager) SwapShift(ctx context.Context, req SwapRequest) (next *oncall.Shift, err error) {
-	users, err := m.users.ListBySlackID(req.UserSlackID1, req.UserSlackID2)
+	users, err := m.users.ListBySlackID(ctx, req.UserSlackID1, req.UserSlackID2)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch users to swap schedule: %w", err)
 	}
@@ -88,9 +89,9 @@ func (m *manager) SwapShift(ctx context.Context, req SwapRequest) (next *oncall.
 		return nil, err
 	}
 
-	for _, shift := range swapped {
-		if shift.Status.String == model.ShiftStatusActive {
-			return asShift(shift, schedule), nil
+	for _, s := range swapped {
+		if s.Status != nil {
+			return asShift(s, schedule), nil
 		}
 	}
 
@@ -108,12 +109,12 @@ func (m *manager) ApplyOverride(ctx context.Context, req OverrideRequest) (*onca
 		return nil, fmt.Errorf("failed to fetch schedule while removing shift: %w", err)
 	}
 
-	var updates model.ShiftSlice
+	var updates []*entity.Shift
 
 	curOverride := currentOverride(schedule)
 	if curOverride != nil {
-		curOverride.Status = null.StringFromPtr(nil)
-		curOverride.StartedAt = null.TimeFromPtr(nil)
+		curOverride.Status = nil
+		curOverride.StartedAt = nil
 		updates = append(updates, curOverride)
 	}
 
@@ -122,8 +123,9 @@ func (m *manager) ApplyOverride(ctx context.Context, req OverrideRequest) (*onca
 		return nil, ErrNotFound
 	}
 
-	override.StartedAt = null.TimeFrom(time.Now())
-	override.Status = null.StringFrom(model.ShiftStatusOverride)
+	status, now := shift.StatusOverride, time.Now()
+	override.StartedAt = &now
+	override.Status = &status
 
 	updates = append(updates, override)
 
@@ -156,20 +158,20 @@ func (m *manager) RemoveShift(ctx context.Context, req RemoveRequest) (*oncall.S
 		return nil, fmt.Errorf("failed to delete shift: %w", err)
 	}
 
-	if len(schedule.R.Shifts) < 1 {
+	if len(schedule.Edges.Shifts) < 1 {
 		return nil, &ErrScheduleEmpty{
 			ID:   schedule.ID,
 			Name: schedule.Name,
 		}
 	}
 
-	var newActive *model.Shift
-	if shiftToRemove.Status.String == model.ShiftStatusActive ||
-		shiftToRemove.Status.String == model.ShiftStatusOverride {
+	var newActive *entity.Shift
+	if shiftToRemove.Status != nil {
 		newActive = nextActive(schedule)
 		if newActive != nil {
-			newActive.Status = null.StringFrom(model.ShiftStatusActive)
-			newActive.StartedAt = null.TimeFrom(time.Now())
+			status, now := shift.StatusActive, time.Now()
+			newActive.Status = &status
+			newActive.StartedAt = &now
 		}
 	}
 

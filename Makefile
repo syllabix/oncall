@@ -22,6 +22,8 @@ help:
 		| sort >&2
 	@echo "" >&2
 
+name = ""
+
 ## run the server locally as configured by a .env file in the root of backend dir
 run:
 	go1.18beta2 run main.go
@@ -44,13 +46,20 @@ dev.stop:
 manifest:
 	go1.18beta2 run ./.dev/manifest/generator.go
 
+## Creates a new entity. (Ex: make entity name=User)
+entity:
+	go run entgo.io/ent/cmd/ent init $(name) --target=./datastore/entity/schema
+
+## Updates entities
+entity.update:
+	go generate ./datastore/entity/...
+
 ## release to heroku
 release:
 	heroku container:login
 	heroku container:push web
 	heroku container:release web
 
-name = ""
 ## Creates a new db migration file for the provided service. (Ex: make migration name=cool-new-tables)
 migration:
 	$(MAKE) _dexec CMD="sql-migrate new -config=common/db/migrations/dbconfig.yml -env=dev $(name)"

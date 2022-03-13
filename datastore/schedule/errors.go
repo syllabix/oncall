@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/syllabix/oncall/datastore/entity"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 
@@ -42,7 +42,7 @@ func failure[T any](reason error) (res T, err error) {
 	return res, mapErr(reason)
 }
 
-func rollback[T any](tx *sqlx.Tx, reason error) (res T, err error) {
+func rollback[T any](tx *entity.Tx, reason error) (res T, err error) {
 	err = tx.Rollback()
 	if err != nil {
 		return res, mapErr(err)

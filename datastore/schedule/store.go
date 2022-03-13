@@ -5,26 +5,33 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/volatiletech/null/v8"
-	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-
-	"github.com/syllabix/oncall/common/db"
-	"github.com/syllabix/oncall/datastore/model"
+	"github.com/syllabix/oncall/datastore/entity"
+	"github.com/syllabix/oncall/datastore/entity/schedule"
+	"github.com/syllabix/oncall/datastore/entity/shift"
 )
 
 type Store struct {
-	db db.Postgres
+	db     *entity.ScheduleClient
+	client *entity.Client
 }
 
-func NewStore(db db.Postgres) (Store, error) {
-	return Store{db}, nil
+func NewStore(db *entity.Client) Store {
+	return Store{db.Schedule, db}
 }
 
-func (s *Store) Create(ctx context.Context, schedule *model.Schedule) (*model.Schedule, error) {
-	err := schedule.Insert(ctx, s.db, boil.Infer())
+func (s *Store) Create(ctx context.Context, schedule *entity.Schedule) (*entity.Schedule, error) {
+	schedule, err := s.db.Create().
+		SetSlackChannelID(schedule.SlackChannelID).
+		SetTeamSlackID(schedule.TeamSlackID).
+		SetName(schedule.Name).
+		SetInterval(schedule.Interval).
+		SetIsEnabled(schedule.IsEnabled).
+		SetEndTime(schedule.EndTime).
+		SetStartTime(schedule.StartTime).
+		SetWeekdaysOnly(schedule.WeekdaysOnly).
+		Save(ctx)
 	if err != nil {
-		return failure[*model.Schedule](
+		return failure[*entity.Schedule](
 			fmt.Errorf("could not create schedule: %w", err),
 		)
 	}
@@ -32,70 +39,58 @@ func (s *Store) Create(ctx context.Context, schedule *model.Schedule) (*model.Sc
 	return schedule, nil
 }
 
-func (s *Store) Update(ctx context.Context, schedule *model.Schedule) (*model.Schedule, error) {
-	_, err := schedule.Update(ctx, s.db, boil.Infer())
+func (s *Store) Update(ctx context.Context, schedule *entity.Schedule) (*entity.Schedule, error) {
+	schedule, err := s.db.UpdateOne(schedule).Save(ctx)
 	if err != nil {
-		return failure[*model.Schedule](
+		return failure[*entity.Schedule](
 			fmt.Errorf("could not update schedule: %w", err),
 		)
 	}
 	return schedule, nil
 }
 
-func (s *Store) GetByID(ctx context.Context, id int) (*model.Schedule, error) {
-	sched, err := model.Schedules(
-		model.ScheduleWhere.ID.EQ(id),
-		qm.Load(
-			model.ScheduleRels.Shifts,
-			qm.OrderBy(model.ShiftColumns.SequenceID),
-		),
-		qm.Load(qm.Rels(
-			model.ScheduleRels.Shifts,
-			model.ShiftRels.User,
-		)),
-	).One(ctx, s.db)
+func (s *Store) GetByID(ctx context.Context, id int) (*entity.Schedule, error) {
+	schedule, err := s.db.Query().
+		Where(schedule.IDEQ(id)).
+		WithShifts(func(q *entity.ShiftQuery) {
+			q.Order(entity.Asc(shift.FieldSequenceID))
+			q.WithUser()
+		}).
+		Only(ctx)
 	if err != nil {
-		return failure[*model.Schedule](
+		return failure[*entity.Schedule](
 			fmt.Errorf("could not get schedule by id: %w", err),
 		)
 	}
-	return sched, nil
+	return schedule, nil
 }
 
-func (s *Store) GetByChannelID(ctx context.Context, id string) (*model.Schedule, error) {
-	sched, err := model.Schedules(
-		model.ScheduleWhere.SlackChannelID.EQ(id),
-		qm.Load(
-			model.ScheduleRels.Shifts,
-			qm.OrderBy(model.ShiftColumns.SequenceID),
-		),
-		qm.Load(qm.Rels(
-			model.ScheduleRels.Shifts,
-			model.ShiftRels.User,
-		)),
-	).One(ctx, s.db)
+func (s *Store) GetByChannelID(ctx context.Context, id string) (*entity.Schedule, error) {
+	schedule, err := s.db.Query().
+		Where(schedule.SlackChannelIDEQ(id)).
+		WithShifts(func(q *entity.ShiftQuery) {
+			q.Order(entity.Asc(shift.FieldSequenceID))
+			q.WithUser()
+		}).
+		Only(ctx)
 	if err != nil {
-		return failure[*model.Schedule](
+		return failure[*entity.Schedule](
 			fmt.Errorf("could not get schedule by channel id: %w", err),
 		)
 	}
-	return sched, nil
+	return schedule, nil
 }
 
-func (s *Store) GetEnabledSchedules(ctx context.Context) (model.ScheduleSlice, error) {
-	schedules, err := model.Schedules(
-		model.ScheduleWhere.IsEnabled.EQ(true),
-		qm.Load(
-			model.ScheduleRels.Shifts,
-			qm.OrderBy(model.ShiftColumns.SequenceID),
-		),
-		qm.Load(qm.Rels(
-			model.ScheduleRels.Shifts,
-			model.ShiftRels.User,
-		)),
-	).All(ctx, s.db)
+func (s *Store) GetEnabledSchedules(ctx context.Context) ([]*entity.Schedule, error) {
+	schedules, err := s.db.Query().
+		Where(schedule.IsEnabledEQ(true)).
+		WithShifts(func(q *entity.ShiftQuery) {
+			q.Order(entity.Asc(shift.FieldSequenceID))
+			q.WithUser()
+		}).
+		All(ctx)
 	if err != nil {
-		return failure[model.ScheduleSlice](
+		return failure[[]*entity.Schedule](
 			fmt.Errorf("failed to fetch schedules: %w", err),
 		)
 	}
@@ -105,7 +100,7 @@ func (s *Store) GetEnabledSchedules(ctx context.Context) (model.ScheduleSlice, e
 func (s *Store) AddToSchedule(
 	ctx context.Context,
 	channelID string,
-	users model.UserSlice,
+	users []*entity.User,
 ) (AddResult, error) {
 
 	// failure helpers
@@ -114,51 +109,43 @@ func (s *Store) AddToSchedule(
 		rollback = rollback[AddResult]
 	)
 
-	tx, err := s.db.BeginTxx(ctx, nil)
+	tx, err := s.client.Tx(ctx)
 	if err != nil {
 		return failure(err)
 	}
 
-	schedule, err := model.Schedules(
-		model.ScheduleWhere.SlackChannelID.EQ(channelID),
-		qm.Load(model.ScheduleRels.Shifts),
-	).One(ctx, tx)
+	builders := asUserBuilders(tx, users...)
+	users, err = tx.User.
+		CreateBulk(builders...).
+		Save(ctx)
 	if err != nil {
 		return rollback(tx, err)
 	}
 
-	rows, err := tx.NamedQuery(upsertStmt, users)
-	if err != nil {
-		return rollback(tx, err)
-	}
-
-	i := 0
-	for rows.Next() {
-		user := users[i]
-		err = rows.Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
-		if err != nil {
-			return rollback(tx, err)
-		}
-		i++
-	}
-
-	err = rows.Close()
+	schedule, err := tx.Schedule.Query().
+		Where(schedule.SlackChannelIDEQ(channelID)).
+		WithShifts(func(q *entity.ShiftQuery) {
+			q.Order(entity.Asc(shift.FieldSequenceID))
+		}).
+		Only(ctx)
 	if err != nil {
 		return rollback(tx, err)
 	}
 
 	var (
-		active *model.User
-		shifts = asShifts(schedule.ID, users)
+		active *entity.User
+		shifts = asShifts(tx, schedule, users)
 	)
 
 	if setActiveShift(schedule) {
 		active = users[0]
-		shifts[0].StartedAt = null.TimeFrom(time.Now())
-		shifts[0].Status = null.StringFrom(model.ShiftStatusActive)
+		shifts[0].SetStartedAt(time.Now())
+		shifts[0].SetStatus(shift.StatusActive)
 	}
 
-	err = schedule.AddShifts(ctx, tx, true, shifts...)
+	newShifts, err := tx.Shift.
+		CreateBulk(shifts...).
+		Save(ctx)
 	if err != nil {
 		return rollback(tx, err)
 	}
@@ -168,6 +155,7 @@ func (s *Store) AddToSchedule(
 		return rollback(tx, err)
 	}
 
+	schedule.Edges.Shifts = append(schedule.Edges.Shifts, newShifts...)
 	return AddResult{
 		Schedule:       *schedule,
 		NewActiveShift: active,

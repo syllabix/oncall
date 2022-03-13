@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/slack-go/slack"
-	"github.com/syllabix/oncall/datastore/model"
+	"github.com/syllabix/oncall/datastore/entity"
 	"github.com/syllabix/oncall/datastore/schedule"
 	"github.com/syllabix/oncall/slack/util/mention"
 )
@@ -41,7 +41,7 @@ func (h *handler) AddToSchedule(cmd slack.SlashCommand) error {
 		return ErrInvalidInput
 	}
 
-	var usrModels model.UserSlice
+	var usrModels []*entity.User
 	for _, user := range users {
 		usr, err := h.client.GetUserInfo(user.ID)
 		if err != nil {

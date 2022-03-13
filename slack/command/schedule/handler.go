@@ -79,7 +79,7 @@ Use the */add* command to get team members in the rotation`,
 					),
 					slack.NewTextBlockObject(
 						slack.MarkdownType,
-						fmt.Sprintf("%s %s - %s", shift.FirstName, shift.LastName, shift.SlackHandle),
+						fmt.Sprintf("%s", shift.SlackHandle),
 						false, false,
 					),
 				},

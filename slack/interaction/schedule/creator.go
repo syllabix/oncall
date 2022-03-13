@@ -1,6 +1,7 @@
 package schedule
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -42,7 +43,7 @@ func (c *creator) Create(callback slack.InteractionCallback) error {
 		)
 	}
 
-	sched, err = c.scheduler.Create(sched)
+	sched, err = c.scheduler.Create(context.TODO(), sched)
 	if err != nil {
 		if errors.Is(err, schedule.ErrAlreadyExists) {
 			return c.respond(callback.Channel.ID, callback.ResponseURL,

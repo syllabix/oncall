@@ -7,11 +7,10 @@ import (
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/syllabix/oncall/common/db"
 )
 
 // Open new connection
-func Open(config db.Settings) (*entsql.Driver, error) {
+func Open(config Settings) (*entsql.Driver, error) {
 	db, err := sql.Open("pgx", config.String())
 	if err != nil {
 		return nil, fmt.Errorf("could not setup pgx db driver: %w", err)

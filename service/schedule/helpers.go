@@ -39,11 +39,7 @@ func asSchedule(model *entity.Schedule) oncall.Schedule {
 
 func findOverride(schedule *entity.Schedule) *entity.Shift {
 	for _, s := range schedule.Edges.Shifts {
-		if s.Status == nil {
-			continue
-		}
-
-		if *s.Status == shift.StatusOverride {
+		if s.Status == shift.StatusOverride {
 			return s
 		}
 	}
@@ -53,11 +49,7 @@ func findOverride(schedule *entity.Schedule) *entity.Shift {
 func nextShiftFrom(schedule *entity.Schedule) (current *entity.Shift, next *entity.Shift) {
 	idx := 0
 	for i, s := range schedule.Edges.Shifts {
-		if s.Status == nil {
-			continue
-		}
-
-		if *s.Status == shift.StatusActive {
+		if s.Status == shift.StatusActive {
 			idx = i + 1
 			current = s
 			break
@@ -107,10 +99,7 @@ func arrange(shifts []*entity.Shift) (active *entity.Shift, ordered []*entity.Sh
 
 	idx := -1
 	for i, s := range shifts {
-		if s.Status == nil {
-			continue
-		}
-		if *s.Status == shift.StatusActive {
+		if s.Status == shift.StatusActive {
 			idx = i + 1
 			active = s
 			break
@@ -122,8 +111,7 @@ func arrange(shifts []*entity.Shift) (active *entity.Shift, ordered []*entity.Sh
 		// let's set the started at time to now
 		// so when we compute the calendar we have a valid
 		// date to start from
-		offset := time.Now().AddDate(0, 0, -1)
-		shifts[0].StartedAt = &offset
+		shifts[0].StartedAt = time.Now().AddDate(0, 0, -1)
 		return shifts[0], shifts
 	}
 

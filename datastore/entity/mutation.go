@@ -1204,7 +1204,7 @@ func (m *ShiftMutation) Status() (r shift.Status, exists bool) {
 // OldStatus returns the old "status" field's value of the Shift entity.
 // If the Shift object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ShiftMutation) OldStatus(ctx context.Context) (v *shift.Status, err error) {
+func (m *ShiftMutation) OldStatus(ctx context.Context) (v shift.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -1325,7 +1325,7 @@ func (m *ShiftMutation) StartedAt() (r time.Time, exists bool) {
 // OldStartedAt returns the old "started_at" field's value of the Shift entity.
 // If the Shift object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ShiftMutation) OldStartedAt(ctx context.Context) (v *time.Time, err error) {
+func (m *ShiftMutation) OldStartedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStartedAt is only allowed on UpdateOne operations")
 	}

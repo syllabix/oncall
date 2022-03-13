@@ -268,7 +268,7 @@ func (sc *ShiftCreate) createSpec() (*Shift, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: shift.FieldStatus,
 		})
-		_node.Status = &value
+		_node.Status = value
 	}
 	if value, ok := sc.mutation.StartedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -276,7 +276,7 @@ func (sc *ShiftCreate) createSpec() (*Shift, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: shift.FieldStartedAt,
 		})
-		_node.StartedAt = &value
+		_node.StartedAt = value
 	}
 	if value, ok := sc.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

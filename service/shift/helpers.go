@@ -57,11 +57,7 @@ func nextActive(schedule *entity.Schedule) *entity.Shift {
 	}
 
 	for i, s := range schedule.Edges.Shifts {
-		if s.Status == nil {
-			continue
-		}
-
-		if *s.Status == shift.StatusActive {
+		if s.Status == shift.StatusActive {
 			if i == len(schedule.Edges.Shifts)-1 {
 				return schedule.Edges.Shifts[0]
 			}
@@ -78,11 +74,7 @@ func currentOverride(schedule *entity.Schedule) *entity.Shift {
 	}
 
 	for _, s := range schedule.Edges.Shifts {
-		if s.Status == nil {
-			continue
-		}
-
-		if *s.Status == shift.StatusOverride {
+		if s.Status == shift.StatusOverride {
 			return s
 		}
 	}

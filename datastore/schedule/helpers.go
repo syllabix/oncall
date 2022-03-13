@@ -12,11 +12,7 @@ func setActiveShift(schedule *entity.Schedule) bool {
 	}
 
 	for _, s := range schedule.Edges.Shifts {
-		if s.Status == nil {
-			continue
-		}
-
-		if *s.Status == shift.StatusActive {
+		if s.Status == shift.StatusActive {
 			return false
 		}
 	}

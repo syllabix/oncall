@@ -21,13 +21,13 @@ type Shift struct {
 	// SequenceID holds the value of the "sequence_id" field.
 	SequenceID int `json:"sequence_id,omitempty"`
 	// Status holds the value of the "status" field.
-	Status *shift.Status `json:"status,omitempty"`
+	Status shift.Status `json:"status,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID int `json:"user_id,omitempty"`
 	// ScheduleID holds the value of the "schedule_id" field.
 	ScheduleID int `json:"schedule_id,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
-	StartedAt *time.Time `json:"started_at,omitempty"`
+	StartedAt time.Time `json:"started_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -118,8 +118,7 @@ func (s *Shift) assignValues(columns []string, values []interface{}) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				s.Status = new(shift.Status)
-				*s.Status = shift.Status(value.String)
+				s.Status = shift.Status(value.String)
 			}
 		case shift.FieldUserID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -137,8 +136,7 @@ func (s *Shift) assignValues(columns []string, values []interface{}) error {
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field started_at", values[i])
 			} else if value.Valid {
-				s.StartedAt = new(time.Time)
-				*s.StartedAt = value.Time
+				s.StartedAt = value.Time
 			}
 		case shift.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -192,18 +190,14 @@ func (s *Shift) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", s.ID))
 	builder.WriteString(", sequence_id=")
 	builder.WriteString(fmt.Sprintf("%v", s.SequenceID))
-	if v := s.Status; v != nil {
-		builder.WriteString(", status=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
+	builder.WriteString(", status=")
+	builder.WriteString(fmt.Sprintf("%v", s.Status))
 	builder.WriteString(", user_id=")
 	builder.WriteString(fmt.Sprintf("%v", s.UserID))
 	builder.WriteString(", schedule_id=")
 	builder.WriteString(fmt.Sprintf("%v", s.ScheduleID))
-	if v := s.StartedAt; v != nil {
-		builder.WriteString(", started_at=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
+	builder.WriteString(", started_at=")
+	builder.WriteString(s.StartedAt.Format(time.ANSIC))
 	builder.WriteString(", created_at=")
 	builder.WriteString(s.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

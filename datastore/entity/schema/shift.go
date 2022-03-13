@@ -28,12 +28,12 @@ func (Shift) Fields() []ent.Field {
 			),
 		field.Enum("status").
 			Values("active", "override").
-			Optional().Nillable(),
+			Optional(),
 		field.Int("user_id"),
 		field.Int("schedule_id"),
 		field.Time("started_at").
 			Default(time.Now).
-			Optional().Nillable(),
+			Optional(),
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable(),

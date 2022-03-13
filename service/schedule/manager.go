@@ -9,7 +9,6 @@ import (
 	"github.com/syllabix/oncall/common/is"
 	"github.com/syllabix/oncall/datastore/entity"
 	"github.com/syllabix/oncall/datastore/entity/shift"
-	"github.com/syllabix/oncall/datastore/model"
 	"github.com/syllabix/oncall/datastore/schedule"
 	shifts "github.com/syllabix/oncall/datastore/shift"
 	"github.com/syllabix/oncall/datastore/user"
@@ -98,14 +97,10 @@ func (m *manager) GetActiveShift(channelID string) (oncall.Shift, error) {
 	var user *entity.User
 loop:
 	for _, s := range schedule.Edges.Shifts {
-		if s.Status == nil {
-			continue
-		}
-
-		switch *s.Status {
+		switch s.Status {
 		case shift.StatusActive:
 			user = s.Edges.User
-		case model.ShiftStatusOverride:
+		case shift.StatusOverride:
 			user = s.Edges.User
 			break loop
 		}
@@ -133,14 +128,13 @@ func (m *manager) StartShift(scheduleID int) (oncall.Schedule, error) {
 	var updates []*entity.Shift
 	current, next := nextShiftFrom(schedule)
 	if current != nil {
-		current.Status = nil
-		current.StartedAt = nil
+		current.Status = ""
+		current.StartedAt = time.Time{}
 		updates = append(updates, current)
 	}
 
-	status, now := shift.StatusActive, time.Now()
-	next.Status = &status
-	next.StartedAt = &now
+	next.Status = shift.StatusActive
+	next.StartedAt = time.Now()
 	updates = append(updates, next)
 
 	err = m.shifts.Update(context.TODO(), updates...)
@@ -170,7 +164,7 @@ func (m *manager) EndShift(scheduleID int) (oncall.Schedule, error) {
 
 	override := findOverride(schedule)
 	if override != nil {
-		override.Status = nil
+		override.Status = ""
 		err = m.shifts.Update(context.TODO(), override)
 		if err != nil {
 			m.log.Error("failed to update override shift", zap.Error(err))

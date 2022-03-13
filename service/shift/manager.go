@@ -90,7 +90,7 @@ func (m *manager) SwapShift(ctx context.Context, req SwapRequest) (next *oncall.
 	}
 
 	for _, s := range swapped {
-		if s.Status != nil {
+		if s.Status != "" {
 			return asShift(s, schedule), nil
 		}
 	}
@@ -113,8 +113,8 @@ func (m *manager) ApplyOverride(ctx context.Context, req OverrideRequest) (*onca
 
 	curOverride := currentOverride(schedule)
 	if curOverride != nil {
-		curOverride.Status = nil
-		curOverride.StartedAt = nil
+		curOverride.Status = ""
+		curOverride.StartedAt = time.Time{}
 		updates = append(updates, curOverride)
 	}
 
@@ -123,9 +123,8 @@ func (m *manager) ApplyOverride(ctx context.Context, req OverrideRequest) (*onca
 		return nil, ErrNotFound
 	}
 
-	status, now := shift.StatusOverride, time.Now()
-	override.StartedAt = &now
-	override.Status = &status
+	override.Status = shift.StatusOverride
+	override.StartedAt = time.Now()
 
 	updates = append(updates, override)
 
@@ -166,12 +165,11 @@ func (m *manager) RemoveShift(ctx context.Context, req RemoveRequest) (*oncall.S
 	}
 
 	var newActive *entity.Shift
-	if shiftToRemove.Status != nil {
+	if shiftToRemove.Status != "" {
 		newActive = nextActive(schedule)
 		if newActive != nil {
-			status, now := shift.StatusActive, time.Now()
-			newActive.Status = &status
-			newActive.StartedAt = &now
+			newActive.Status = shift.StatusActive
+			newActive.StartedAt = time.Now()
 		}
 	}
 

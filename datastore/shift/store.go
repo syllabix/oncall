@@ -21,7 +21,12 @@ func (s Store) Update(ctx context.Context, shifts ...*entity.Shift) error {
 	}
 
 	for _, s := range shifts {
-		_, err = tx.Shift.UpdateOne(s).Save(ctx)
+		err = tx.Shift.UpdateOneID(s.ID).
+			SetSequenceID(s.SequenceID).
+			SetScheduleID(s.ScheduleID).
+			SetStatus(s.Status).
+			SetUserID(s.UserID).
+			Exec(ctx)
 		if err != nil {
 			return failure(err)
 		}

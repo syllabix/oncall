@@ -17,9 +17,10 @@ import (
 )
 
 var (
-	ErrNotFound      = errors.New("schedule not found")
-	ErrAlreadyExists = errors.New("there is already a schedule configured for this channel")
-	ErrNoActiveShift = errors.New("there is no active shift for this schedule")
+	ErrNotFound            = errors.New("schedule not found")
+	ErrAlreadyExists       = errors.New("there is already a schedule configured for this channel")
+	ErrNoActiveShift       = errors.New("there is no active shift for this schedule")
+	ErrShiftAlreadyStarted = errors.New("the current shift has already started")
 )
 
 type Manager interface {
@@ -32,13 +33,19 @@ type Manager interface {
 }
 
 func NewManager(db schedule.Store, users user.Store, shifts shift.Store, log *zap.Logger) Manager {
-	return &manager{db, users, shifts, log}
+	// Biller only!
+	ams, err := time.LoadLocation("Europe/Amsterdam")
+	if err != nil {
+		panic(err)
+	}
+	return &manager{db, users, shifts, ams, log}
 }
 
 type manager struct {
-	db     schedule.Store
-	users  user.Store
-	shifts shift.Store
+	db       schedule.Store
+	users    user.Store
+	shifts   shift.Store
+	timezone *time.Location
 
 	log *zap.Logger
 }
@@ -86,7 +93,7 @@ func (m *manager) GetActiveShift(channelID string) (oncall.Shift, error) {
 		return oncall.Shift{}, fmt.Errorf("failed to retrieve active on call shift: %w", err)
 	}
 
-	if isAfterHours(schedule) {
+	if isAfterHours(schedule, m.timezone) {
 		return oncall.Shift{}, ErrNoActiveShift
 	}
 
@@ -128,6 +135,10 @@ func (m *manager) StartShift(scheduleID int) (oncall.Schedule, error) {
 	var updates []*model.Shift
 	current, next := nextShiftFrom(schedule)
 	if current != nil {
+		// Biller only!
+		if is.Today(current.StartedAt.Time) {
+			return oncall.Schedule{}, ErrShiftAlreadyStarted
+		}
 		current.Status = null.StringFromPtr(nil)
 		current.StartedAt = null.TimeFromPtr(nil)
 		updates = append(updates, current)

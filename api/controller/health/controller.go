@@ -12,9 +12,9 @@ type Controller struct {
 	log *zap.Logger
 }
 
-func NewController() rest.Controller {
+func NewController(log *zap.Logger) rest.Controller {
 	return rest.MakeController(
-		&Controller{},
+		&Controller{log: log},
 	)
 }
 
@@ -23,5 +23,6 @@ func (ctrl *Controller) Register(router *httprouter.Router) {
 }
 
 func (ctrl *Controller) HealthCheck(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	ctrl.log.Info("health check pinged")
 	w.Write([]byte("OK"))
 }

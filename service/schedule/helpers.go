@@ -34,8 +34,8 @@ func nextShiftFrom(schedule *model.Schedule) (current *model.Shift, next *model.
 	return current, schedule.R.Shifts[idx]
 }
 
-func isAfterHours(schedule *model.Schedule) bool {
-	now := time.Now()
+func isAfterHours(schedule *model.Schedule, timezone *time.Location) bool {
+	now := time.Now().In(timezone)
 	start := time.Date(
 		now.Year(),
 		now.Month(),
@@ -44,7 +44,7 @@ func isAfterHours(schedule *model.Schedule) bool {
 		schedule.StartTime.Minute(),
 		schedule.StartTime.Second(),
 		schedule.StartTime.Nanosecond(),
-		time.UTC,
+		timezone,
 	)
 	end := time.Date(
 		now.Year(),
@@ -54,7 +54,7 @@ func isAfterHours(schedule *model.Schedule) bool {
 		schedule.EndTime.Minute(),
 		schedule.EndTime.Second(),
 		schedule.EndTime.Nanosecond(),
-		time.UTC,
+		timezone,
 	)
 	if now.Before(start) || now.After(end) {
 		return true

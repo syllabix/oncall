@@ -25,7 +25,14 @@ func NewService(
 	manager schedule.Manager,
 	log *zap.Logger,
 ) Service {
-	scheduler := gocron.NewScheduler(time.UTC)
+	// Biller only!
+	ams, err := time.LoadLocation("Europe/Amsterdam")
+	if err != nil {
+		panic(err)
+	}
+
+	scheduler := gocron.NewScheduler(ams)
+	scheduler.WaitForScheduleAll()
 	return &service{client, scheduler, manager, log}
 }
 
@@ -52,27 +59,36 @@ func (s *service) ScheduleAll() error {
 func (s *service) Schedule(schedule oncall.Schedule) error {
 
 	var (
-		endhour   = strconv.Itoa(schedule.EndTime.Hour())
 		starthour = strconv.Itoa(schedule.StartTime.Hour())
+		endhour   = strconv.Itoa(schedule.EndTime.Hour())
+
+		startMinute = strconv.Itoa(schedule.StartTime.Minute())
+		endMinute   = strconv.Itoa(schedule.EndTime.Minute())
 
 		startExpr string
 		endExpr   string
 	)
 
 	if schedule.WeekdaysOnly {
-		startExpr = fmt.Sprintf("1 %s * * 1-5", starthour)
-		endExpr = fmt.Sprintf("1 %s * * 1-5", endhour)
+		startExpr = fmt.Sprintf("%s %s * * 1-5", startMinute, starthour)
+		endExpr = fmt.Sprintf("%s %s * * 1-5", endMinute, endhour)
 	} else {
-		startExpr = fmt.Sprintf("1 %s * * 0-6", starthour)
-		endExpr = fmt.Sprintf("1 %s * * 0-6", endhour)
+		startExpr = fmt.Sprintf("%s %s * * 0-6", startMinute, starthour)
+		endExpr = fmt.Sprintf("%s %s * * 0-6", endMinute, endhour)
 	}
 
 	s.scheduler.Cron(startExpr).
 		Tag(fmt.Sprintf("sched-%d-start", schedule.ID)).
-		Do(func() { s.startShift(schedule.ID) })
+		Do(func() {
+			s.log.Info("starting shift")
+			s.startShift(schedule.ID)
+		})
 	s.scheduler.Cron(endExpr).
 		Tag(fmt.Sprintf("sched-%d-end", schedule.ID)).
-		Do(func() { s.endShift(schedule.ID) })
+		Do(func() {
+			s.log.Info("ending shift")
+			s.endShift(schedule.ID)
+		})
 	s.log.Info("on call shifts have been scheduled",
 		zap.Int("schedule-id", schedule.ID),
 		zap.String("shift-start", startExpr),

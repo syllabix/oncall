@@ -24,7 +24,7 @@ help:
 
 ## run the server locally as configured by a .env file in the root of backend dir
 run:
-	go1.18beta2 run main.go
+	go run main.go
 
 ## run go mod tidy
 tidy:
@@ -42,7 +42,7 @@ dev.stop:
 
 ## Sets up Slack bot manifest generator utility
 manifest:
-	go1.18beta2 run ./.dev/manifest/generator.go
+	go run ./.dev/manifest/generator.go
 
 ## release to heroku
 release:

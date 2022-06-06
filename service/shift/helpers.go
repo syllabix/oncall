@@ -4,12 +4,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/syllabix/oncall/datastore/model"
+	"github.com/syllabix/oncall/datastore/entity"
+	"github.com/syllabix/oncall/datastore/entity/shift"
 	"github.com/syllabix/oncall/service/oncall"
 )
 
-func asShift(s *model.Shift, schedule *model.Schedule) *oncall.Shift {
-	usr := s.R.User
+func asShift(s *entity.Shift, schedule *entity.Schedule) *oncall.Shift {
+	usr := s.Edges.User
 	return &oncall.Shift{
 		UserID:       usr.ID,
 		FirstName:    usr.FirstName,
@@ -21,14 +22,14 @@ func asShift(s *model.Shift, schedule *model.Schedule) *oncall.Shift {
 	}
 }
 
-func extractShift(userID int, schedule *model.Schedule) *model.Shift {
-	if len(schedule.R.Shifts) < 1 {
+func extractShift(userID int, schedule *entity.Schedule) *entity.Shift {
+	if len(schedule.Edges.Shifts) < 1 {
 		return nil
 	}
 
-	for i, shift := range schedule.R.Shifts {
-		if shift.R.User.ID == userID {
-			schedule.R.Shifts = append(schedule.R.Shifts[:i], schedule.R.Shifts[i+1:]...)
+	for i, shift := range schedule.Edges.Shifts {
+		if shift.Edges.User.ID == userID {
+			schedule.Edges.Shifts = append(schedule.Edges.Shifts[:i], schedule.Edges.Shifts[i+1:]...)
 			return shift
 		}
 	}
@@ -36,13 +37,13 @@ func extractShift(userID int, schedule *model.Schedule) *model.Shift {
 	return nil
 }
 
-func findShift(userID int, schedule *model.Schedule) *model.Shift {
-	if len(schedule.R.Shifts) < 1 {
+func findShift(userID int, schedule *entity.Schedule) *entity.Shift {
+	if len(schedule.Edges.Shifts) < 1 {
 		return nil
 	}
 
-	for _, shift := range schedule.R.Shifts {
-		if shift.R.User.ID == userID {
+	for _, shift := range schedule.Edges.Shifts {
+		if shift.Edges.User.ID == userID {
 			return shift
 		}
 	}
@@ -50,45 +51,45 @@ func findShift(userID int, schedule *model.Schedule) *model.Shift {
 	return nil
 }
 
-func nextActive(schedule *model.Schedule) *model.Shift {
-	if len(schedule.R.Shifts) < 1 {
+func nextActive(schedule *entity.Schedule) *entity.Shift {
+	if len(schedule.Edges.Shifts) < 1 {
 		return nil
 	}
 
-	for i, shift := range schedule.R.Shifts {
-		if shift.Status.String == model.ShiftStatusActive {
-			if i == len(schedule.R.Shifts)-1 {
-				return schedule.R.Shifts[0]
+	for i, s := range schedule.Edges.Shifts {
+		if s.Status == shift.StatusActive {
+			if i == len(schedule.Edges.Shifts)-1 {
+				return schedule.Edges.Shifts[0]
 			}
-			return schedule.R.Shifts[i+1]
+			return schedule.Edges.Shifts[i+1]
 		}
 	}
 
 	return nil
 }
 
-func currentOverride(schedule *model.Schedule) *model.Shift {
-	if len(schedule.R.Shifts) < 1 {
+func currentOverride(schedule *entity.Schedule) *entity.Shift {
+	if len(schedule.Edges.Shifts) < 1 {
 		return nil
 	}
 
-	for _, shift := range schedule.R.Shifts {
-		if shift.Status.String == model.ShiftStatusOverride {
-			return shift
+	for _, s := range schedule.Edges.Shifts {
+		if s.Status == shift.StatusOverride {
+			return s
 		}
 	}
 
 	return nil
 }
 
-func swapShifts(userA, userB model.User, schedule *model.Schedule) ([]*model.Shift, error) {
-	if len(schedule.R.Shifts) < 2 {
+func swapShifts(userA, userB *entity.User, schedule *entity.Schedule) ([]*entity.Shift, error) {
+	if len(schedule.Edges.Shifts) < 2 {
 		return nil, errors.New("the schedule has less then two shifts")
 	}
 
-	set := make(map[int]*model.Shift)
-	for _, shift := range schedule.R.Shifts {
-		set[shift.UserID] = shift
+	set := make(map[int]*entity.Shift)
+	for _, shift := range schedule.Edges.Shifts {
+		set[shift.Edges.User.ID] = shift
 	}
 
 	shiftA, contains := set[userA.ID]
@@ -101,22 +102,24 @@ func swapShifts(userA, userB model.User, schedule *model.Schedule) ([]*model.Shi
 		return nil, fmt.Errorf("user %d is not in schedule", userB.ID)
 	}
 
-	return []*model.Shift{
+	return []*entity.Shift{
 		{
-			UserID:     shiftA.UserID,
-			ScheduleID: shiftA.ScheduleID,
-			R:          shiftA.R,
 			Status:     shiftB.Status,
 			StartedAt:  shiftB.StartedAt,
 			SequenceID: shiftB.SequenceID,
+			Edges: entity.ShiftEdges{
+				User:     shiftA.Edges.User,
+				Schedule: shiftA.Edges.Schedule,
+			},
 		},
 		{
-			UserID:     shiftB.UserID,
-			ScheduleID: shiftB.ScheduleID,
-			R:          shiftB.R,
 			Status:     shiftA.Status,
 			StartedAt:  shiftA.StartedAt,
 			SequenceID: shiftA.SequenceID,
+			Edges: entity.ShiftEdges{
+				User:     shiftB.Edges.User,
+				Schedule: shiftB.Edges.Schedule,
+			},
 		},
 	}, nil
 

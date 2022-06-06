@@ -1,10 +1,10 @@
 package schedule
 
 import (
-	"github.com/syllabix/oncall/datastore/model"
+	"github.com/syllabix/oncall/datastore/entity"
 )
 
 type AddResult struct {
-	Schedule       model.Schedule
-	NewActiveShift *model.User
+	Schedule       entity.Schedule
+	NewActiveShift *entity.User
 }

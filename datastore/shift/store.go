@@ -3,27 +3,33 @@ package shift
 import (
 	"context"
 
-	"github.com/syllabix/oncall/common/db"
-	"github.com/syllabix/oncall/datastore/model"
+	"github.com/syllabix/oncall/datastore/entity"
 )
 
 type Store struct {
-	db db.Postgres
+	db *entity.Client
 }
 
-func NewStore(db db.Postgres) (Store, error) {
-	return Store{db}, nil
+func NewStore(db *entity.Client) Store {
+	return Store{db}
 }
 
-func (s Store) Update(ctx context.Context, shifts ...*model.Shift) error {
-	tx, err := s.db.BeginTxx(ctx, nil)
+func (s Store) Update(ctx context.Context, shifts ...*entity.Shift) error {
+	tx, err := s.db.Tx(ctx)
 	if err != nil {
 		return failure(err)
 	}
 
-	_, err = tx.NamedExec(update, shifts)
-	if err != nil {
-		return rollback(tx, err)
+	for _, s := range shifts {
+		err = tx.Shift.UpdateOneID(s.ID).
+			SetSequenceID(s.SequenceID).
+			SetScheduleID(s.ScheduleID).
+			SetStatus(s.Status).
+			SetUserID(s.UserID).
+			Exec(ctx)
+		if err != nil {
+			return failure(err)
+		}
 	}
 
 	err = tx.Commit()
@@ -34,8 +40,8 @@ func (s Store) Update(ctx context.Context, shifts ...*model.Shift) error {
 	return nil
 }
 
-func (s Store) Delete(ctx context.Context, shift *model.Shift) error {
-	_, err := shift.Delete(ctx, s.db)
+func (s Store) Delete(ctx context.Context, shift *entity.Shift) error {
+	err := s.db.Shift.DeleteOne(shift).Exec(ctx)
 	if err != nil {
 		return failure(err)
 	}

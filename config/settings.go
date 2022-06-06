@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/syllabix/oncall/common/db"
+	"github.com/syllabix/oncall/datastore/entity/database"
 	"go.uber.org/zap"
 )
 
@@ -29,7 +29,7 @@ type ServerSettings struct {
 	WriteTimeout time.Duration
 }
 
-func Load(log *zap.Logger) (ServerSettings, SlackSettings, db.Settings) {
+func Load(log *zap.Logger) (ServerSettings, SlackSettings, database.Settings) {
 	err := godotenv.Load()
 	if err != nil {
 		log.Warn("unable to load .env file to source config")
@@ -49,7 +49,7 @@ func Load(log *zap.Logger) (ServerSettings, SlackSettings, db.Settings) {
 			SigningSecret:     os.Getenv("SLACK_SIGNING_SECRET"),
 			VerificationToken: os.Getenv("SLACK_VERIFICATION_TOKEN"),
 			DebugMode:         asBool("SLACK_ENABLE_DEBUG_MODE", true),
-		}, db.Settings{
+		}, database.Settings{
 			DBName:             os.Getenv("DB_NAME"),
 			SSLMode:            os.Getenv("SSL_MODE"),
 			User:               os.Getenv("DB_USER"),
